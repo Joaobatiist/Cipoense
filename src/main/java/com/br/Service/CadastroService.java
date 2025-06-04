@@ -1,37 +1,44 @@
+// src/main/java/com/br/Service/CadastroService.java
 package com.br.Service;
 
 import com.br.Entity.Aluno;
 import com.br.Entity.Responsavel;
 import com.br.Repository.AlunoRepository;
 import com.br.Repository.ResponsavelRepository;
-import jakarta.persistence.EntityManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CadastroService {
 
-    @Autowired
-    private AlunoRepository alunoRepository;
+    private final AlunoRepository alunoRepository;
+    private final ResponsavelRepository responsavelRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private ResponsavelRepository responsavelRepository;
-
-    @Autowired
-    private EntityManager entityManager;
-
-    @Transactional
-    public Aluno cadastroAluno(Aluno aluno) {
-        Aluno saved = alunoRepository.save(aluno);
-        entityManager.flush();  // força o envio para o banco agora
-        return saved;
+    public CadastroService(AlunoRepository alunoRepository,
+                           ResponsavelRepository responsavelRepository,
+                           PasswordEncoder passwordEncoder) {
+        this.alunoRepository = alunoRepository;
+        this.responsavelRepository = responsavelRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
-    public Responsavel cadastroResponsavel(Responsavel responsavel) {
-        Responsavel saved = responsavelRepository.save(responsavel);
-        entityManager.flush();
-        return saved;
+    public Aluno cadastrarAlunoComResponsavel(Aluno aluno) {
+        if (aluno.getResponsavel() != null) {
+            Responsavel responsavelSalvo = responsavelRepository.save(aluno.getResponsavel());
+            aluno.setResponsavel(responsavelSalvo);
+        } else {
+            throw new IllegalArgumentException("Responsável é obrigatório para o cadastro do aluno.");
+        }
+
+        aluno.setSenha(passwordEncoder.encode(aluno.getSenha()));
+
+        if (aluno.getRoles() == null || aluno.getRoles().isEmpty()) {
+            aluno.setRoles("ALUNO");
+        }
+
+        return alunoRepository.save(aluno);
     }
 }

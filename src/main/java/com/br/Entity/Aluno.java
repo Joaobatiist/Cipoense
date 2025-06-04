@@ -30,11 +30,14 @@ public class Aluno {
     @Column(name="email", nullable = false)
     private String email;
 
+    @Column(nullable = false)
+    private String roles;
+
     @Column(name = "dataDeNascimento")
     private LocalDate dataNascimento;
 
-    @Column(name = "cpfResponsavel", nullable = false)
-    private String cpfResponsavel;
+    @Column(name = "cpf", nullable = false)
+    private String cpf;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "responsavel_id")
