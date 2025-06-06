@@ -12,17 +12,16 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="reponsavel")
-public class Responsavel {
+@Table(name="eventos")
+public class Eventos {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long Id;
-    private String nome;
-    @Column(unique = true)
-    private String telefone;
-    @Column(unique = true)
-    private String email;
-    @Column(unique = true)
-    private String cpf;
+    private Long id;
+    private String data;
+    private String descricao;
+    private String professor;
+    private String local;
+    private String horario;
 
 }

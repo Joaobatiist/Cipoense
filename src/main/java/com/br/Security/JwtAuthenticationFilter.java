@@ -1,4 +1,4 @@
-// src/main/java/com/br/Security/JwtAuthenticationFilter.java
+
 package com.br.Security; // Ajuste o pacote para security
 
 import jakarta.servlet.FilterChain;

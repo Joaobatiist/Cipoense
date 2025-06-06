@@ -25,14 +25,28 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    public String generateToken(UserDetails userDetails) {
+    // NOVO MÉTODO: generateToken que aceita userId e userType
+    public String generateToken(UserDetails userDetails, Long userId, String userType) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId); // Adiciona o ID do usuário
+        claims.put("userType", userType); // Adiciona o tipo do usuário
+
         // Adiciona as roles do usuário como um claim no token
         claims.put("roles", userDetails.getAuthorities().stream()
                 .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
                 .collect(Collectors.toList()));
         return createToken(claims, userDetails.getUsername());
     }
+
+    // Método original (mantido para compatibilidade, se ainda usado em outro lugar)
+    public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", userDetails.getAuthorities().stream()
+                .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
+                .collect(Collectors.toList()));
+        return createToken(claims, userDetails.getUsername());
+    }
+
 
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
@@ -61,6 +75,20 @@ public class JwtUtil {
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
+
+    // NOVO MÉTODO: Para extrair o userId do token
+    public Long extractUserId(String token) {
+        Claims claims = extractAllClaims(token);
+        // O valor do claim pode vir como Integer se for um número pequeno, então é melhor castar para Long
+        return claims.get("userId", Long.class);
+    }
+
+    // NOVO MÉTODO: Para extrair o userType do token
+    public String extractUserType(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("userType", String.class);
+    }
+
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);

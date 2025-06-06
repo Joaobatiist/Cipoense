@@ -3,11 +3,14 @@ package com.br.Service;
 
 import com.br.Entity.Aluno;
 import com.br.Entity.Responsavel;
+import com.br.Enums.Role;
 import com.br.Repository.AlunoRepository;
 import com.br.Repository.ResponsavelRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class CadastroService {
@@ -35,10 +38,13 @@ public class CadastroService {
 
         aluno.setSenha(passwordEncoder.encode(aluno.getSenha()));
 
-        if (aluno.getRoles() == null || aluno.getRoles().isEmpty()) {
-            aluno.setRoles("ALUNO");
+        if (aluno.getRoles() == null) {
+            aluno.setRoles(Role.ALUNO);
         }
 
         return alunoRepository.save(aluno);
+    }
+    public List<Aluno> listarTodosAlunos() {
+        return alunoRepository.findAll();
     }
 }
