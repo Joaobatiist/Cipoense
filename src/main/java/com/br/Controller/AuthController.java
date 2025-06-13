@@ -7,9 +7,9 @@ import com.br.Security.UserDetailsServiceImpl;
 import com.br.Repository.SupervisorRepository; // Importe seus repositórios
 import com.br.Repository.CoordenadorRepository;
 import com.br.Repository.TecnicoRepository;
-import com.br.Repository.AlunoRepository;
+import com.br.Repository.AtletaRepository;
 import com.br.Entity.Super; // Entidade base para Supervisor, Coordenador, Tecnico
-import com.br.Entity.Aluno;
+import com.br.Entity.Atleta;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,7 +34,7 @@ public class AuthController {
     private final SupervisorRepository supervisorRepository;
     private final CoordenadorRepository coordenadorRepository;
     private final TecnicoRepository tecnicoRepository;
-    private final AlunoRepository alunoRepository;
+    private final AtletaRepository atletaRepository;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtUtil jwtUtil,
@@ -42,14 +42,14 @@ public class AuthController {
                           SupervisorRepository supervisorRepository,
                           CoordenadorRepository coordenadorRepository,
                           TecnicoRepository tecnicoRepository,
-                          AlunoRepository alunoRepository) {
+                          AtletaRepository atletaRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.supervisorRepository = supervisorRepository;
         this.coordenadorRepository = coordenadorRepository;
         this.tecnicoRepository = tecnicoRepository;
-        this.alunoRepository = alunoRepository;
+        this.atletaRepository = atletaRepository;
     }
 
     @PostMapping("/login")
@@ -88,11 +88,11 @@ public class AuthController {
                 userId = user.getId();
                 userType = user.getUserType(); // Supondo que você adicione setUserType e getUserType em Super
             } else {
-                Optional<Aluno> foundAluno = alunoRepository.findByEmail(authRequest.getEmail());
-                if (foundAluno.isPresent()) {
-                    Aluno aluno = foundAluno.get();
-                    userId = aluno.getId();
-                    userType = "ALUNO"; // Define o tipo para Aluno
+                Optional<Atleta> foundAtleta = atletaRepository.findByEmail(authRequest.getEmail());
+                if (foundAtleta.isPresent()) {
+                    Atleta atleta = foundAtleta.get();
+                    userId = atleta.getId();
+                    userType = "ATLETA";
                 }
             }
 

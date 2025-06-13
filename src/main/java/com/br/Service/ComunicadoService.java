@@ -29,7 +29,7 @@ public class ComunicadoService {
     private ComunicadoRepository comunicadoRepository;
 
     @Autowired
-    private AlunoRepository alunoRepository;
+    private AtletaRepository atletaRepository;
 
     @Autowired
     private CoordenadorRepository coordenadorRepository;
@@ -52,8 +52,8 @@ public class ComunicadoService {
             return supervisorRepository.findByEmail(username).orElse(null);
         } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + Role.TECNICO.name()))) {
             return tecnicoRepository.findByEmail(username).orElse(null);
-        } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + Role.ALUNO.name()))) {
-            return alunoRepository.findByEmail(username).orElse(null);
+        } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + Role.ATLETA.name()))) {
+            return atletaRepository.findByEmail(username).orElse(null);
         }
         return null;
     }
@@ -68,10 +68,10 @@ public class ComunicadoService {
 
         List<ComunicadoResponse.DestinatarioDTO> destinatarios = new ArrayList<>();
 
-        // Adiciona destinatários Alunos
-        if (comunicado.getDestinatariosAlunos() != null) {
-            comunicado.getDestinatariosAlunos().forEach(aluno ->
-                    destinatarios.add(new ComunicadoResponse.DestinatarioDTO(aluno.getId(), aluno.getNome(), Role.ALUNO.name()))
+
+        if (comunicado.getDestinatariosAtletas() != null) {
+            comunicado.getDestinatariosAtletas().forEach(atleta ->
+                    destinatarios.add(new ComunicadoResponse.DestinatarioDTO(atleta.getId(), atleta.getNome(), Role.ATLETA.name()))
             );
         }
         // Adiciona destinatários Coordenadores
@@ -134,10 +134,10 @@ public class ComunicadoService {
 
         List<Object> allDestinatarios = new ArrayList<>(); // Lista para armazenar todos os objetos destinatários
 
-        if (dto.getAlunoIds() != null && !dto.getAlunoIds().isEmpty()) {
-            List<Aluno> alunos = alunoRepository.findAllById(dto.getAlunoIds());
-            alunos.forEach(comunicado::addDestinatarioAluno);
-            allDestinatarios.addAll(alunos);
+        if (dto.getAtletasIds() != null && !dto.getAtletasIds().isEmpty()) {
+            List<Atleta> atletas = atletaRepository.findAllById(dto.getAtletasIds());
+            atletas.forEach(comunicado::addDestinatarioAtleta);
+            allDestinatarios.addAll(atletas);
         }
         if (dto.getCoordenadorIds() != null && !dto.getCoordenadorIds().isEmpty()) {
             List<Coordenador> coordenadores = coordenadorRepository.findAllById(dto.getCoordenadorIds());
@@ -161,7 +161,7 @@ public class ComunicadoService {
         for (Object dest : allDestinatarios) {
             ComunicadoStatus status = new ComunicadoStatus();
             status.setComunicado(savedComunicado);
-            if (dest instanceof Aluno) status.setAluno((Aluno) dest);
+            if (dest instanceof Atleta) status.setAtleta((Atleta) dest);
             else if (dest instanceof Coordenador) status.setCoordenador((Coordenador) dest);
             else if (dest instanceof Supervisor) status.setSupervisor((Supervisor) dest);
             else if (dest instanceof Tecnico) status.setTecnico((Tecnico) dest);
@@ -170,7 +170,7 @@ public class ComunicadoService {
         }
 
         // Forçar a inicialização das coleções lazy para o DTO (boa prática para o retorno)
-        savedComunicado.getDestinatariosAlunos().size();
+        savedComunicado.getDestinatariosAtletas().size();
         savedComunicado.getDestinatariosCoordenadores().size();
         savedComunicado.getDestinatariosSupervisores().size();
         savedComunicado.getDestinatariosTecnicos().size();
@@ -205,17 +205,17 @@ public class ComunicadoService {
         comunicado.setData(dto.getData() != null ? dto.getData() : comunicado.getData());
 
         // Limpa destinatários existentes antes de adicionar os novos
-        comunicado.getDestinatariosAlunos().clear();
+        comunicado.getDestinatariosAtletas().clear();
         comunicado.getDestinatariosCoordenadores().clear();
         comunicado.getDestinatariosSupervisores().clear();
         comunicado.getDestinatariosTecnicos().clear();
 
         List<Object> allNewDestinatarios = new ArrayList<>(); // Para rastrear os novos destinatários para status
 
-        if (dto.getAlunoIds() != null && !dto.getAlunoIds().isEmpty()) {
-            List<Aluno> alunos = alunoRepository.findAllById(dto.getAlunoIds());
-            alunos.forEach(comunicado::addDestinatarioAluno);
-            allNewDestinatarios.addAll(alunos);
+        if (dto.getAtletasIds() != null && !dto.getAtletasIds().isEmpty()) {
+            List<Atleta> atletas = atletaRepository.findAllById(dto.getAtletasIds());
+            atletas.forEach(comunicado::addDestinatarioAtleta);
+            allNewDestinatarios.addAll(atletas);
         }
         if (dto.getCoordenadorIds() != null && !dto.getCoordenadorIds().isEmpty()) {
             List<Coordenador> coordenadores = coordenadorRepository.findAllById(dto.getCoordenadorIds());
@@ -240,7 +240,7 @@ public class ComunicadoService {
         List<ComunicadoStatus> existingStatuses = comunicadoStatusPorUsuarioRepository.findByComunicado(updatedComunicado);
         Set<Long> currentDestinatarioIds = new HashSet<>();
         allNewDestinatarios.forEach(d -> {
-            if (d instanceof Aluno) currentDestinatarioIds.add(((Aluno) d).getId());
+            if (d instanceof Atleta) currentDestinatarioIds.add(((Atleta) d).getId());
             else if (d instanceof Coordenador) currentDestinatarioIds.add(((Coordenador) d).getId());
             else if (d instanceof Supervisor) currentDestinatarioIds.add(((Supervisor) d).getId());
             else if (d instanceof Tecnico) currentDestinatarioIds.add(((Tecnico) d).getId());
@@ -254,8 +254,8 @@ public class ComunicadoService {
         // Adicionar status para novos destinatários (ou reativar se existia e estava oculto)
         for (Object newDest : allNewDestinatarios) {
             Optional<ComunicadoStatus> existingStatus = Optional.empty();
-            if (newDest instanceof Aluno) {
-                existingStatus = comunicadoStatusPorUsuarioRepository.findByComunicadoAndAlunoId(updatedComunicado, ((Aluno) newDest).getId());
+            if (newDest instanceof Atleta) {
+                existingStatus = comunicadoStatusPorUsuarioRepository.findByComunicadoAndAtletaId(updatedComunicado, ((Atleta) newDest).getId());
             } else if (newDest instanceof Coordenador) {
                 existingStatus = comunicadoStatusPorUsuarioRepository.findByComunicadoAndCoordenadorId(updatedComunicado, ((Coordenador) newDest).getId());
             } else if (newDest instanceof Supervisor) {
@@ -267,7 +267,7 @@ public class ComunicadoService {
             if (existingStatus.isEmpty()) {
                 ComunicadoStatus newStatus = new ComunicadoStatus();
                 newStatus.setComunicado(updatedComunicado);
-                if (newDest instanceof Aluno) newStatus.setAluno((Aluno) newDest);
+                if (newDest instanceof Atleta) newStatus.setAtleta((Atleta) newDest);
                 else if (newDest instanceof Coordenador) newStatus.setCoordenador((Coordenador) newDest);
                 else if (newDest instanceof Supervisor) newStatus.setSupervisor((Supervisor) newDest);
                 else if (newDest instanceof Tecnico) newStatus.setTecnico((Tecnico) newDest);
@@ -283,7 +283,7 @@ public class ComunicadoService {
 
 
         // Forçar a inicialização das coleções lazy para o DTO
-        updatedComunicado.getDestinatariosAlunos().size();
+        updatedComunicado.getDestinatariosAtletas().size();
         updatedComunicado.getDestinatariosCoordenadores().size();
         updatedComunicado.getDestinatariosSupervisores().size();
         updatedComunicado.getDestinatariosTecnicos().size();
@@ -307,7 +307,7 @@ public class ComunicadoService {
         }
 
         Long loggedInUserId = null;
-        if (loggedInUser instanceof Aluno) loggedInUserId = ((Aluno) loggedInUser).getId();
+        if (loggedInUser instanceof Atleta) loggedInUserId = ((Atleta) loggedInUser).getId();
         else if (loggedInUser instanceof Coordenador) loggedInUserId = ((Coordenador) loggedInUser).getId();
         else if (loggedInUser instanceof Supervisor) loggedInUserId = ((Supervisor) loggedInUser).getId();
         else if (loggedInUser instanceof Tecnico) loggedInUserId = ((Tecnico) loggedInUser).getId();
@@ -323,8 +323,8 @@ public class ComunicadoService {
 
         // Buscar comunicados onde o usuário logado é destinatário, e que NÃO ESTEJAM OCULTOS
         // Usaremos os novos métodos do repositório
-        if (loggedInUser instanceof Aluno) {
-            comunicadosDoUsuario.addAll(comunicadoRepository.findComunicadosByDestinatarioAlunoIdAndNotOcultado(((Aluno) loggedInUser).getId()));
+        if (loggedInUser instanceof Atleta) {
+            comunicadosDoUsuario.addAll(comunicadoRepository.findComunicadosByDestinatarioAtletaIdAndNotOcultado(((Atleta) loggedInUser).getId()));
         } else if (loggedInUser instanceof Coordenador) {
             comunicadosDoUsuario.addAll(comunicadoRepository.findComunicadosByDestinatarioCoordenadorIdAndNotOcultado(((Coordenador) loggedInUser).getId()));
         } else if (loggedInUser instanceof Supervisor) {
@@ -365,7 +365,7 @@ public class ComunicadoService {
         boolean podeVer = false;
         Long loggedInUserId = null;
 
-        if (loggedInUser instanceof Aluno) loggedInUserId = ((Aluno) loggedInUser).getId();
+        if (loggedInUser instanceof Atleta) loggedInUserId = ((Atleta) loggedInUser).getId();
         else if (loggedInUser instanceof Coordenador) loggedInUserId = ((Coordenador) loggedInUser).getId();
         else if (loggedInUser instanceof Supervisor) loggedInUserId = ((Supervisor) loggedInUser).getId();
         else if (loggedInUser instanceof Tecnico) loggedInUserId = ((Tecnico) loggedInUser).getId();
@@ -381,8 +381,8 @@ public class ComunicadoService {
         // 2. O usuário é um destinatário e o comunicado NÃO está oculto para ele?
         if (!podeVer) { // Se já pode ver como remetente, não precisa checar como destinatário
             Optional<ComunicadoStatus> statusOptional = Optional.empty();
-            if (loggedInUser instanceof Aluno) {
-                statusOptional = comunicadoStatusPorUsuarioRepository.findByComunicadoAndAlunoId(comunicado, loggedInUserId);
+            if (loggedInUser instanceof Atleta) {
+                statusOptional = comunicadoStatusPorUsuarioRepository.findByComunicadoAndAtletaId(comunicado, loggedInUserId);
             } else if (loggedInUser instanceof Coordenador) {
                 statusOptional = comunicadoStatusPorUsuarioRepository.findByComunicadoAndCoordenadorId(comunicado, loggedInUserId);
             } else if (loggedInUser instanceof Supervisor) {
@@ -433,9 +433,9 @@ public class ComunicadoService {
         Optional<ComunicadoStatus> statusOptional = Optional.empty();
         Long loggedInUserId = null;
 
-        if (loggedInUser instanceof Aluno) {
-            loggedInUserId = ((Aluno) loggedInUser).getId();
-            statusOptional = comunicadoStatusPorUsuarioRepository.findByComunicadoAndAlunoId(comunicado, loggedInUserId);
+        if (loggedInUser instanceof Atleta) {
+            loggedInUserId = ((Atleta) loggedInUser).getId();
+            statusOptional = comunicadoStatusPorUsuarioRepository.findByComunicadoAndAtletaId(comunicado, loggedInUserId);
         } else if (loggedInUser instanceof Coordenador) {
             loggedInUserId = ((Coordenador) loggedInUser).getId();
             statusOptional = comunicadoStatusPorUsuarioRepository.findByComunicadoAndCoordenadorId(comunicado, loggedInUserId);

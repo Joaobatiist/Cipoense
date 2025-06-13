@@ -1,6 +1,6 @@
 package com.br.Controller;
 
-import com.br.Repository.AlunoRepository;
+import com.br.Repository.AtletaRepository;
 import com.br.Repository.CoordenadorRepository;
 import com.br.Repository.SupervisorRepository;
 import com.br.Repository.TecnicoRepository;
@@ -18,7 +18,7 @@ import java.util.List;
 public class UsuarioController {
 
     @Autowired
-    private AlunoRepository alunoRepository;
+    private AtletaRepository atletaRepository;
     @Autowired
     private CoordenadorRepository coordenadorRepository;
     @Autowired
@@ -49,7 +49,7 @@ public class UsuarioController {
         List<UserForSelection> users = new ArrayList<>();
 
         // Adiciona Alunos
-        alunoRepository.findAll().forEach(a -> users.add(new UserForSelection(a.getId(), a.getNome(), "Aluno")));
+        atletaRepository.findAll().forEach(a -> users.add(new UserForSelection(a.getId(), a.getNome(), "Atleta")));
         // Adiciona Coordenadores
         coordenadorRepository.findAll().forEach(c -> users.add(new UserForSelection(c.getId(), c.getNome(), "Coordenador")));
         // Adiciona Supervisores

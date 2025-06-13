@@ -12,7 +12,7 @@ public class ComunicadoRequest {
     private LocalDate data; // Opcional, pode ser gerado no backend
 
     // Listas de IDs para cada tipo de destinatário
-    private List<Long> alunoIds;
+    private List<Long> atletasIds;
     private List<Long> coordenadorIds;
     private List<Long> supervisorIds;
     private List<Long> tecnicoIds;

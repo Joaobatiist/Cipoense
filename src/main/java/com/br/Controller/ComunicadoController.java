@@ -25,14 +25,14 @@ public class ComunicadoController {
         return new ResponseEntity<>(novoComunicado, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasAnyRole('ALUNO', 'COORDENADOR', 'SUPERVISOR', 'TECNICO', 'ADMIN')") // Todos podem listar
+    @PreAuthorize("hasAnyRole('ATLETA', 'COORDENADOR', 'SUPERVISOR', 'TECNICO')") // Todos podem listar
     @GetMapping
     public ResponseEntity<List<ComunicadoResponse>> getAllComunicados() {
         List<ComunicadoResponse> comunicados = comunicadoService.buscarTodosComunicados();
         return new ResponseEntity<>(comunicados, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('ALUNO', 'COORDENADOR', 'SUPERVISOR', 'TECNICO', 'ADMIN')") // Todos podem buscar por ID
+    @PreAuthorize("hasAnyRole('ATLETA', 'COORDENADOR', 'SUPERVISOR', 'TECNICO')") // Todos podem buscar por ID
     @GetMapping("/{id}")
     public ResponseEntity<ComunicadoResponse> getComunicadoById(@PathVariable Long id) {
         return comunicadoService.buscarComunicadoPorId(id)
@@ -54,7 +54,7 @@ public class ComunicadoController {
     }
 
     // **NOVO ENDPOINT: Ocultar comunicado da sessão do usuário**
-    @PreAuthorize("hasAnyRole('ALUNO', 'COORDENADOR', 'SUPERVISOR', 'TECNICO')") // Destinatários (e criadores se forem destinatários)
+    @PreAuthorize("hasAnyRole('ATLETA', 'COORDENADOR', 'SUPERVISOR', 'TECNICO')") // Destinatários (e criadores se forem destinatários)
     @PutMapping("/ocultar/{id}")
     public ResponseEntity<Void> ocultarComunicado(@PathVariable Long id) {
         try {
@@ -70,7 +70,7 @@ public class ComunicadoController {
 
     // **MÉTODO MODIFICADO: Deletar comunicado PERMANENTEMENTE**
     // Restringido para remetentes ou ADMIN (validação mais fina no Service)
-    @PreAuthorize("hasAnyRole('COORDENADOR', 'SUPERVISOR', 'TECNICO', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('COORDENADOR', 'SUPERVISOR', 'TECNICO')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarComunicadoPermanentemente(@PathVariable Long id) { // Renomeado o método para clareza
         try {

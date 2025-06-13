@@ -23,8 +23,8 @@ public class ComunicadoStatus {
 
     // Relacionamentos para os tipos de usuário (apenas um deve ser preenchido)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "aluno_id")
-    private Aluno aluno;
+    @JoinColumn(name = "atleta_id")
+    private Atleta atleta;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coordenador_id")
@@ -42,14 +42,14 @@ public class ComunicadoStatus {
     private boolean ocultado = false; // Indica se o usuário "excluiu" da sua sessão
 
     // Métodos para verificar o tipo de usuário associado
-    public boolean isForAluno() { return this.aluno != null; }
+    public boolean isForAtleta() { return this.atleta != null; }
     public boolean isForCoordenador() { return this.coordenador != null; }
     public boolean isForSupervisor() { return this.supervisor != null; }
     public boolean isForTecnico() { return this.tecnico != null; }
 
     // Método auxiliar para obter o ID do usuário relacionado (para conveniência)
     public Long getAssociatedUserId() {
-        if (aluno != null) return aluno.getId();
+        if (atleta != null) return atleta.getId();
         if (coordenador != null) return coordenador.getId();
         if (supervisor != null) return supervisor.getId();
         if (tecnico != null) return tecnico.getId();

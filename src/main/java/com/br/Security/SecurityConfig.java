@@ -33,11 +33,14 @@ public class SecurityConfig {
                         // Public endpoints (no authentication required)
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios-para-comunicado").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.GET, "/api/alunos/nomes").permitAll() // Se esta rota não exige autenticação
+                        .requestMatchers(HttpMethod.GET, "/api/atletas/nomes").permitAll() // Se esta rota não exige autenticação
 
                         // Endpoints de Eventos: Qualquer usuário autenticado pode ver (a filtragem de conteúdo, se houver, deve ser no serviço)
                         .requestMatchers(HttpMethod.GET, "/api/eventos").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/eventos/{id}").authenticated()
+
+
+                        .requestMatchers(HttpMethod.POST, "/api/presenca/registrar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
 
                         // Endpoints de Comunicados: Qualquer usuário autenticado pode ver a lista de comunicados
                         // A LÓGICA DE FILTRAGEM (apenas os comunicados do usuário logado) ESTÁ NO ComunicadoService
@@ -55,7 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/cadastro/funcionarios").hasAnyRole("SUPERVISOR", "COORDENADOR") // Para cadastrar outros funcionários
 
                         // Acesso à lista de Alunos (geral)
-                        .requestMatchers(HttpMethod.GET, "/api/alunos").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.GET, "/api/atletas").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
 
 
                         // Apenas usuários com certas roles podem CRIAR, ATUALIZAR, DELETAR eventos
@@ -63,12 +66,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/eventos/**").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.DELETE, "/api/eventos/**").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
 
-                        // Acesso a dashboards/seções baseados em role (seus próprios recursos ou informações específicas)
-                        // É uma boa prática usar "/**" para cobrir sub-recursos.
+
                         .requestMatchers("/api/supervisor/**").hasRole("SUPERVISOR")
                         .requestMatchers("/api/coordenador/**").hasRole("COORDENADOR")
                         .requestMatchers("/api/tecnico/**").hasRole("TECNICO")
-                        .requestMatchers("/api/aluno/**").hasRole("ALUNO") // Se houver endpoints específicos para alunos
+                        .requestMatchers("/api/atleta/**").hasRole("ATLETA") // Se houver endpoints específicos para alunos
 
                         // Todas as outras requisições requerem autenticação (regra genérica final)
                         .anyRequest().authenticated()

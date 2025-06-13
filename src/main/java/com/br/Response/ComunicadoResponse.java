@@ -23,7 +23,7 @@ public class ComunicadoResponse {
     public static class DestinatarioDTO {
         private Long id;
         private String nome;
-        private String tipo; // "Aluno", "Coordenador", "Supervisor", "Tecnico"
+        private String tipo;
     }
 
     private List<DestinatarioDTO> destinatarios;

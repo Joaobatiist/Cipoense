@@ -41,11 +41,11 @@ public class Comunicado {
     // Destinatários Alunos
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-            name = "comunicado_destinatario_aluno",
+            name = "comunicado_destinatario_atletas",
             joinColumns = @JoinColumn(name = "comunicado_id"),
-            inverseJoinColumns = @JoinColumn(name = "aluno_id")
+            inverseJoinColumns = @JoinColumn(name = "atleta_id")
     )
-    private Set<Aluno> destinatariosAlunos = new HashSet<>();
+    private Set<Atleta> destinatariosAtletas = new HashSet<>();
 
     // Destinatários Coordenadores
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -75,11 +75,11 @@ public class Comunicado {
     private Set<Tecnico> destinatariosTecnicos = new HashSet<>();
 
 
-    public void addDestinatarioAluno(Aluno aluno) {
-        this.destinatariosAlunos.add(aluno);
+    public void addDestinatarioAtleta(Atleta atleta) {
+        this.destinatariosAtletas.add(atleta);
     }
-    public void removeDestinatarioAluno(Aluno aluno) {
-        this.destinatariosAlunos.remove(aluno);
+    public void removeDestinatarioAtleta(Atleta atleta) {
+        this.destinatariosAtletas.remove(atleta);
     }
 
     public void addDestinatarioCoordenador(Coordenador coordenador) {

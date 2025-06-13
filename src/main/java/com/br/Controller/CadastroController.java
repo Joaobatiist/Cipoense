@@ -1,7 +1,7 @@
 
 package com.br.Controller;
 
-import com.br.Entity.Aluno;
+import com.br.Entity.Atleta;
 import com.br.Service.CadastroService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,49 +22,19 @@ public class CadastroController {
     }
 
     @PostMapping("/cadastro")
-    public ResponseEntity<Aluno> cadastrarAlunoComResponsavel(@RequestBody Aluno aluno) {
+    public ResponseEntity<Atleta> cadastrarAtletaComResponsavel(@RequestBody Atleta atleta) {
         try {
-            Aluno novoAluno = cadastroService.cadastrarAlunoComResponsavel(aluno);
-            return ResponseEntity.status(HttpStatus.CREATED).body(novoAluno);
+            Atleta novoAtleta = cadastroService.cadastrarAtletaComResponsavel(atleta);
+            return ResponseEntity.status(HttpStatus.CREATED).body(novoAtleta);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(null);
         } catch (Exception e) {
-            System.err.println("Erro interno ao cadastrar aluno: " + e.getMessage());
+            System.err.println("Erro interno ao cadastrar atleta: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
 
-    @GetMapping("/alunos/nomes")
-    public ResponseEntity<List<String>> listarNomesDosAlunos() {
-        try {
 
-            List<Aluno> todosAlunos = cadastroService.listarTodosAlunos();
-
-
-            List<String> nomesAlunos = todosAlunos.stream()
-                    .map(Aluno::getNome)
-                    .collect(Collectors.toList());
-
-            return ResponseEntity.ok(nomesAlunos);
-        } catch (Exception e) {
-            System.err.println("Erro ao buscar nomes dos alunos: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
-
-
-    @GetMapping("/alunos")
-    public ResponseEntity<List<Aluno>> listarTodosAlunos() {
-        try {
-            List<Aluno> todosAlunos = cadastroService.listarTodosAlunos();
-            return ResponseEntity.ok(todosAlunos);
-        } catch (Exception e) {
-            System.err.println("Erro ao buscar todos os alunos: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
 }

@@ -17,7 +17,7 @@ public interface ComunicadoRepository extends JpaRepository<Comunicado, Long> {
 
     // Busca todos os comunicados com todos os destinatários e remetentes carregados
     @Query("SELECT DISTINCT c FROM Comunicado c " + // DISTINCT para evitar duplicação em ManyToMany
-            "LEFT JOIN FETCH c.destinatariosAlunos da " +
+            "LEFT JOIN FETCH c.destinatariosAtletas da " +
             "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
             "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
             "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
@@ -28,7 +28,7 @@ public interface ComunicadoRepository extends JpaRepository<Comunicado, Long> {
 
     // Busca comunicado por ID com todos os destinatários e remetentes carregados
     @Query("SELECT c FROM Comunicado c " +
-            "LEFT JOIN FETCH c.destinatariosAlunos da " +
+            "LEFT JOIN FETCH c.destinatariosAtletas da " +
             "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
             "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
             "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
@@ -41,7 +41,7 @@ public interface ComunicadoRepository extends JpaRepository<Comunicado, Long> {
 
     // Métodos findByRemetenteX com FETCH JOIN para carregar detalhes
     @Query("SELECT c FROM Comunicado c " +
-            "LEFT JOIN FETCH c.destinatariosAlunos da " +
+            "LEFT JOIN FETCH c.destinatariosAtletas da " +
             "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
             "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
             "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
@@ -52,7 +52,7 @@ public interface ComunicadoRepository extends JpaRepository<Comunicado, Long> {
     List<Comunicado> findByRemetenteCoordenadorWithDetails(@Param("coordenador") Coordenador coordenador);
 
     @Query("SELECT c FROM Comunicado c " +
-            "LEFT JOIN FETCH c.destinatariosAlunos da " +
+            "LEFT JOIN FETCH c.destinatariosAtletas da " +
             "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
             "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
             "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
@@ -63,7 +63,7 @@ public interface ComunicadoRepository extends JpaRepository<Comunicado, Long> {
     List<Comunicado> findByRemetenteSupervisorWithDetails(@Param("supervisor") Supervisor supervisor);
 
     @Query("SELECT c FROM Comunicado c " +
-            "LEFT JOIN FETCH c.destinatariosAlunos da " +
+            "LEFT JOIN FETCH c.destinatariosAtletas da " +
             "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
             "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
             "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
@@ -78,19 +78,19 @@ public interface ComunicadoRepository extends JpaRepository<Comunicado, Long> {
     // Adicionado `LEFT JOIN` com `ComunicadoStatusPorUsuario` e verificado `cs.ocultado = false` ou `cs.id IS NULL`
     // Isso garante que comunicados sem um registro de status (ou seja, nunca ocultados) também sejam retornados
     @Query("SELECT DISTINCT c FROM Comunicado c " +
-            "LEFT JOIN FETCH c.destinatariosAlunos da " +
+            "LEFT JOIN FETCH c.destinatariosAtletas da " +
             "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
             "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
             "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
             "LEFT JOIN FETCH c.remetenteCoordenador rc " +
             "LEFT JOIN FETCH c.remetenteSupervisor rs " +
             "LEFT JOIN FETCH c.remetenteTecnico rt " +
-            "LEFT JOIN ComunicadoStatus cs ON cs.comunicado = c AND cs.aluno.id = :alunoId " +
-            "WHERE da.id = :alunoId AND (cs.id IS NULL OR cs.ocultado = false)")
-    List<Comunicado> findComunicadosByDestinatarioAlunoIdAndNotOcultado(@Param("alunoId") Long alunoId);
+            "LEFT JOIN ComunicadoStatus cs ON cs.comunicado = c AND cs.atleta.id = :atletaId " +
+            "WHERE da.id = :atletaId AND (cs.id IS NULL OR cs.ocultado = false)")
+    List<Comunicado> findComunicadosByDestinatarioAtletaIdAndNotOcultado(@Param("atletaId") Long atletaId);
 
     @Query("SELECT DISTINCT c FROM Comunicado c " +
-            "LEFT JOIN FETCH c.destinatariosAlunos da " +
+            "LEFT JOIN FETCH c.destinatariosAtletas da " +
             "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
             "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
             "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
@@ -102,7 +102,7 @@ public interface ComunicadoRepository extends JpaRepository<Comunicado, Long> {
     List<Comunicado> findComunicadosByDestinatarioCoordenadorIdAndNotOcultado(@Param("coordenadorId") Long coordenadorId);
 
     @Query("SELECT DISTINCT c FROM Comunicado c " +
-            "LEFT JOIN FETCH c.destinatariosAlunos da " +
+            "LEFT JOIN FETCH c.destinatariosAtletas da " +
             "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
             "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
             "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
@@ -114,7 +114,7 @@ public interface ComunicadoRepository extends JpaRepository<Comunicado, Long> {
     List<Comunicado> findComunicadosByDestinatarioSupervisorIdAndNotOcultado(@Param("supervisorId") Long supervisorId);
 
     @Query("SELECT DISTINCT c FROM Comunicado c " +
-            "LEFT JOIN FETCH c.destinatariosAlunos da " +
+            "LEFT JOIN FETCH c.destinatariosAtletas da " +
             "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
             "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
             "LEFT JOIN FETCH c.destinatariosTecnicos dt " +

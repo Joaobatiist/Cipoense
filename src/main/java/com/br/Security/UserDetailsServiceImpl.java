@@ -3,10 +3,10 @@ package com.br.Security;
 import com.br.Repository.SupervisorRepository;
 import com.br.Repository.CoordenadorRepository;
 import com.br.Repository.TecnicoRepository;
-import com.br.Repository.AlunoRepository;
+import com.br.Repository.AtletaRepository;
 
 import com.br.Entity.Super;
-import com.br.Entity.Aluno;
+import com.br.Entity.Atleta;
 import com.br.Enums.Role;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,16 +28,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private final SupervisorRepository supervisorRepository;
     private final CoordenadorRepository coordenadorRepository;
     private final TecnicoRepository tecnicoRepository;
-    private final AlunoRepository alunoRepository;
+    private final AtletaRepository atletaRepository;
 
     public UserDetailsServiceImpl(SupervisorRepository supervisorRepository,
                                   CoordenadorRepository coordenadorRepository,
                                   TecnicoRepository tecnicoRepository,
-                                  AlunoRepository alunoRepository) {
+                                  AtletaRepository atletaRepository) {
         this.supervisorRepository = supervisorRepository;
         this.coordenadorRepository = coordenadorRepository;
         this.tecnicoRepository = tecnicoRepository;
-        this.alunoRepository = alunoRepository;
+        this.atletaRepository = atletaRepository;
     }
 
     @Override
@@ -49,9 +49,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         coordenadorRepository.findByEmail(email),
                         tecnicoRepository.findByEmail(email)
                 )
-                .flatMap(Optional::stream) // Converts each Optional<T> to a Stream<T> (or empty if Optional is empty)
-                .findFirst();              // Finds the first element in the resulting stream of Super objects
-
+                .flatMap(Optional::stream)
+                .findFirst();
         if (foundSuperUser.isPresent()) {
             Super user = foundSuperUser.get();
             return User.builder()
@@ -61,22 +60,22 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     .build();
         }
 
-        // If no user from the 'Super' hierarchy was found, try finding an Aluno
-        Optional<Aluno> foundAluno = alunoRepository.findByEmail(email);
-        if (foundAluno.isPresent()) {
-            Aluno aluno = foundAluno.get();
+
+        Optional<Atleta> foundAtleta = atletaRepository.findByEmail(email);
+        if (foundAtleta.isPresent()) {
+            Atleta atleta = foundAtleta.get();
             return User.builder()
-                    .username(aluno.getEmail())
-                    .password(aluno.getSenha()) // HASHED password from the database
-                    .authorities(getAuthorities(aluno.getRoles()))
+                    .username(atleta.getEmail())
+                    .password(atleta.getSenha()) // HASHED password from the database
+                    .authorities(getAuthorities(atleta.getRoles()))
                     .build();
         }
 
-        // If the user was not found in any source, throw an exception
+
         throw new UsernameNotFoundException("Usuário não encontrado com o email: " + email);
     }
 
-    // Method to convert the Enum Role to GrantedAuthority
+
     private Collection<? extends GrantedAuthority> getAuthorities(Role role) {
         if (role == null) {
             return Collections.emptyList();
