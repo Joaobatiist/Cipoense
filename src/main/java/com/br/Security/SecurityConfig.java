@@ -30,49 +30,75 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // Desabilita CSRF para APIs REST
                 .authorizeHttpRequests(authorize -> authorize
-                        // Public endpoints (no authentication required)
+                        // 1. Public endpoints (no authentication required)
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/atletas/nomes").permitAll() // Exemplo de endpoint público
+
+                        // 2. Endpoints que exigem ROLES ESPECÍFICAS
+                        // Endpoints de ESTOQUE - Corrigido e Consolidado
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/estoque"
+                        ).hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/estoque", // GET all
+                                "/api/estoque/{id}" // GET by ID
+                        ).hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/estoque/{id}"
+                        ).hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/estoque/{id}"
+                        ).hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+
+                        // Endpoints de USUÁRIOS PARA COMUNICADO
                         .requestMatchers(HttpMethod.GET, "/api/usuarios-para-comunicado").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.GET, "/api/atletas/nomes").permitAll() // Se esta rota não exige autenticação
 
-                        // Endpoints de Eventos: Qualquer usuário autenticado pode ver (a filtragem de conteúdo, se houver, deve ser no serviço)
-                        .requestMatchers(HttpMethod.GET, "/api/eventos").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/eventos/{id}").authenticated()
-
-
+                        // Endpoints de PRESENÇA
                         .requestMatchers(HttpMethod.POST, "/api/presenca/registrar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.GET, "/api/presenca/atletas").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.GET, "/api/presenca/presentes").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.GET, "/api/presenca/historico").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
 
-                        // Endpoints de Comunicados: Qualquer usuário autenticado pode ver a lista de comunicados
-                        // A LÓGICA DE FILTRAGEM (apenas os comunicados do usuário logado) ESTÁ NO ComunicadoService
-                        .requestMatchers(HttpMethod.GET, "/api/comunicados").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/comunicados/{id}").authenticated()
-
-
-                        // Apenas usuários com certas roles podem CRIAR, ATUALIZAR, DELETAR comunicados
+                        // Endpoints de COMUNICADOS (Criar, Atualizar, Deletar exigem roles específicas)
                         .requestMatchers(HttpMethod.POST, "/api/comunicados").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.PUT, "/api/comunicados/{id}").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.DELETE, "/api/comunicados/{id}").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
 
-                        // Endpoints de Cadastro
+                        // Endpoints de CADASTRO
                         .requestMatchers(HttpMethod.POST, "/api/cadastro").hasAnyRole("SUPERVISOR", "COORDENADOR") // Para cadastrar Alunos/Responsáveis
                         .requestMatchers(HttpMethod.POST, "/cadastro/funcionarios").hasAnyRole("SUPERVISOR", "COORDENADOR") // Para cadastrar outros funcionários
 
                         // Acesso à lista de Alunos (geral)
                         .requestMatchers(HttpMethod.GET, "/api/atletas").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
 
-
-                        // Apenas usuários com certas roles podem CRIAR, ATUALIZAR, DELETAR eventos
+                        // Endpoints de EVENTOS (Criar, Atualizar, Deletar exigem roles específicas - CORRIGIDO /api/eventos/**)
                         .requestMatchers(HttpMethod.POST, "/api/eventos").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.PUT, "/api/eventos/**").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.DELETE, "/api/eventos/**").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
 
 
+                        // 3. Endpoints que exigem APENAS AUTENTICAÇÃO (qualquer usuário logado)
+                        // A LÓGICA DE FILTRAGEM (apenas os comunicados do usuário logado) ESTÁ NO ComunicadoService
+                        .requestMatchers(HttpMethod.GET, "/api/comunicados").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/comunicados/{id}").authenticated()
+
+                        // Endpoints de ROLE SPECÍFICA - Mantidos
                         .requestMatchers("/api/supervisor/**").hasRole("SUPERVISOR")
                         .requestMatchers("/api/coordenador/**").hasRole("COORDENADOR")
                         .requestMatchers("/api/tecnico/**").hasRole("TECNICO")
                         .requestMatchers("/api/atleta/**").hasRole("ATLETA") // Se houver endpoints específicos para alunos
 
-                        // Todas as outras requisições requerem autenticação (regra genérica final)
+
+                        // 4. Todas as outras requisições (catch-all) requerem autenticação
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

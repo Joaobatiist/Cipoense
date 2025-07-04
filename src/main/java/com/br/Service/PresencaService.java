@@ -1,17 +1,19 @@
 package com.br.Service;
 
 import com.br.Entity.Atleta;
-import com.br.Entity.Eventos;
 import com.br.Entity.Presenca;
 import com.br.Repository.AtletaRepository;
 import com.br.Repository.PresencaRepository;
 import com.br.Request.PresencaRequest;
+import com.br.Response.HistoricoPresencaResponse;
+import com.br.Response.PresencaResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate; // Importe LocalDate
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PresencaService {
@@ -31,8 +33,7 @@ public class PresencaService {
             Atleta atleta = atletaRepository.findById(dto.getAtletaId())
                     .orElseThrow(() -> new RuntimeException("Atleta não encontrado com ID: " + dto.getAtletaId()));
 
-            // 2. Converter a string de data para LocalDate (se dto.getData() for String)
-            // Assumindo que dto.getData() é uma String no formato "YYYY-MM-DD"
+
             LocalDate dataPresenca = dto.getData();
 
             // 3. Tenta encontrar uma presença existente para o atleta NA DATA ESPECÍFICA
@@ -53,6 +54,52 @@ public class PresencaService {
             }
         }
     }
+
+
+   public List<PresencaResponse> getLista() {
+        List <Presenca> lista = presencaRepository.findAll();
+
+        return lista.stream().map(presenca -> new PresencaResponse(presenca.getId(),
+                presenca.getAtleta().getNome(),
+                presenca.getPresente()))
+                .collect(Collectors.toList());
+   }
+    public List<HistoricoPresencaResponse> getHistoricoPresencas() {
+        // Busca todas as presenças
+        List<Presenca> todasPresencas = presencaRepository.findAll();
+
+        // Mapeia para o DTO de resposta do histórico
+        return todasPresencas.stream()
+                .map(presenca -> new HistoricoPresencaResponse(
+                        presenca.getId(),
+                        presenca.getData(),
+                        presenca.getPresente(),
+                        presenca.getAtleta().getId(),
+                        presenca.getAtleta().getNome() // Assumindo que Atleta tem um método getNome()
+                ))
+                .collect(Collectors.toList());
+    }
+    public List<PresencaResponse> getAtletasComPresencaNaData(LocalDate data) {
+        // Busca todos os atletas cadastrados
+        List<Atleta> todosAtletas = atletaRepository.findAll();
+
+        // Busca presenças registradas na data específica
+        List<Presenca> presencasNaData = presencaRepository.findByData(data);
+
+        return todosAtletas.stream().map(atleta -> {
+
+            Optional<Presenca> presenca = presencasNaData.stream()
+                    .filter(p -> p.getAtleta().getId().equals(atleta.getId()))
+                    .findFirst();
+
+            return new PresencaResponse(
+                    atleta.getId(),
+                    atleta.getNome(),
+                    presenca.isPresent() ? presenca.get().getPresente() : null
+            );
+        }).collect(Collectors.toList());
+    }
+
 
 
 }

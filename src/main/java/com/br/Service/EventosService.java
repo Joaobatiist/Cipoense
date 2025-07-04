@@ -21,14 +21,14 @@ public class EventosService {
         return eventosRepository.save(eventos);
     }
 
-    // --- New methods for CRUD ---
+
     public List<Eventos> listarTodosEventos() {
         return eventosRepository.findAll();
     }
 
     @Transactional
     public Eventos atualizarEvento(Long id, Eventos eventoAtualizado) {
-        // Find existing event
+
         Optional<Eventos> existingEventOptional = eventosRepository.findById(id);
 
         if (existingEventOptional.isPresent()) {

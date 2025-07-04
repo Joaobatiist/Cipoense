@@ -26,7 +26,7 @@ public class UsuarioController {
     @Autowired
     private TecnicoRepository tecnicoRepository;
 
-    // DTO simples para retornar a lista de usuários para seleção no frontend
+
     public static class UserForSelection {
         public Long id;
         public String nome;

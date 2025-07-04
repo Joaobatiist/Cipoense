@@ -3,15 +3,21 @@ package com.br.Controller;
 import com.br.Entity.Presenca;
 import com.br.Repository.AtletaRepository;
 import com.br.Request.PresencaRequest;
+import com.br.Response.HistoricoPresencaResponse;
+import com.br.Response.PresencaResponse;
 import com.br.Service.PresencaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
- // Seu serviço de presença
+
+import static org.hibernate.internal.util.collections.ArrayHelper.forEach;
+// Seu serviço de presença
 
 @RestController
 @RequestMapping("/api/presenca")
@@ -21,6 +27,8 @@ public class PresencaController {
 
 @Autowired
 private AtletaRepository atletaRepository;
+
+
 
     public PresencaController(PresencaService presencaService) {
         this.presencaService = presencaService;
@@ -53,13 +61,34 @@ private AtletaRepository atletaRepository;
         public String getNome() { return nome; }
         public String getTipo() { return tipo; }
     }
-    @GetMapping("/atletas")
-    public ResponseEntity<List<PresencaController.User>> getUsuariosForComunicado() {
-        List<PresencaController.User> users = new ArrayList<>();
 
-        atletaRepository.findAll().forEach(a -> users.add(new PresencaController.User(a.getId(), a.getNome(), "Atleta")));
-        return ResponseEntity.ok(users);
+    @GetMapping("/atletas")
+    public ResponseEntity<List<PresencaResponse>> getAtletasComPresenca(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+
+        try {
+            List<PresencaResponse> lista = presencaService.getAtletasComPresencaNaData(data);
+            return ResponseEntity.ok(lista);
+        } catch (Exception e) {
+            System.err.println("Erro ao buscar a lista de alunos" + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
+
+
+    // NOVO ENDPOINT: Para buscar o histórico de presenças (usado na tela de histórico)
+    @GetMapping("/historico")
+    public ResponseEntity<List<HistoricoPresencaResponse>> getHistoricoPresencas() {
+        try {
+            List<HistoricoPresencaResponse> historico = presencaService.getHistoricoPresencas();
+            return ResponseEntity.ok(historico);
+        } catch (Exception e) {
+            System.err.println("Erro ao buscar histórico de presenças: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 
 }

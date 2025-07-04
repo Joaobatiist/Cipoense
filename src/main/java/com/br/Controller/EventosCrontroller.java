@@ -11,8 +11,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin("http://192.168.0.10:8081") // Your specific React Native origin for CORS
-public class EventosCrontroller { // Typo: Crontroller -> Controller
+public class EventosCrontroller {
 
     private final EventosService eventosService;
 

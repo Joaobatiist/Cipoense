@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin("http://192.168.0.10:8081")
+
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -55,19 +55,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> authenticateUser(@RequestBody AuthRequest authRequest) {
         try {
-            // 1. Autentica o usuário. Isso verifica as credenciais (email/senha)
+
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getSenha()));
 
-            // 2. Carrega UserDetails (já vem do seu UserDetailsServiceImpl)
+
             UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getEmail());
 
-            // 3. AGORA: Buscamos o ID e o Tipo do usuário autenticado a partir dos repositórios
+
             Long userId = null;
             String userType = null;
 
             Optional<? extends Super> foundSuperUser = Stream.of(
-                            supervisorRepository.findByEmail(authRequest.getEmail()).map(s -> { // .map para garantir que o tipo seja "SUPERVISOR"
+                            supervisorRepository.findByEmail(authRequest.getEmail()).map(s -> {
                                 s.setUserType("SUPERVISOR");
                                 return s;
                             }),
@@ -86,7 +86,7 @@ public class AuthController {
             if (foundSuperUser.isPresent()) {
                 Super user = foundSuperUser.get();
                 userId = user.getId();
-                userType = user.getUserType(); // Supondo que você adicione setUserType e getUserType em Super
+                userType = user.getUserType();
             } else {
                 Optional<Atleta> foundAtleta = atletaRepository.findByEmail(authRequest.getEmail());
                 if (foundAtleta.isPresent()) {
@@ -96,24 +96,23 @@ public class AuthController {
                 }
             }
 
-            // Garante que um ID e Tipo foram encontrados
+
             if (userId == null || userType == null) {
-                // Isso não deve acontecer se a autenticação foi bem-sucedida, mas é uma segurança
+
                 throw new IllegalStateException("ID do usuário ou tipo não encontrado após autenticação.");
             }
 
-            // 4. Gera o JWT, passando o ID e o Tipo para o JwtUtil
+
             String jwt = jwtUtil.generateToken(userDetails, userId, userType);
 
-            // 5. Retorna a resposta com o JWT
+
             return ResponseEntity.ok(new AuthResponse(jwt));
 
         } catch (AuthenticationException e) {
-            // Trata falha na autenticação (senha incorreta, usuário não encontrado, etc.)
+
             return ResponseEntity.status(401).body(new AuthResponse("Credenciais inválidas."));
         } catch (Exception e) {
-            // Trata outros erros inesperados
-            // e.printStackTrace(); // Para depuração, remova em produção
+
             return ResponseEntity.status(500).body(new AuthResponse("Erro interno do servidor: " + e.getMessage()));
         }
     }
