@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name="reponsavel")
-public class Responsavel {
+public class  Responsavel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long Id;

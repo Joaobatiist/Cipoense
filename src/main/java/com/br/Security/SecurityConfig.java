@@ -39,8 +39,9 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/atletas/nomes").permitAll() // Exemplo de endpoint público
 
-                        // 2. Endpoints que exigem ROLES ESPECÍFICAS
-                        // Endpoints de ESTOQUE - Corrigido e Consolidado
+                        .requestMatchers(HttpMethod.GET,"/api/atleta/profile/**").hasRole("ATLETA")
+                        .requestMatchers(HttpMethod.POST,"/api/atleta/documents").hasRole("ATLETA")
+                        .requestMatchers(HttpMethod.DELETE,"/api/atleta/documents/{documentId}").hasRole("ATLETA")
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/estoque"

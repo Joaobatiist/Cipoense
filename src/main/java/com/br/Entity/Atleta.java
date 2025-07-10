@@ -1,6 +1,5 @@
 package com.br.Entity;
 
-
 import com.br.Enums.Role;
 import com.br.Enums.SubDivisao;
 import jakarta.persistence.*;
@@ -25,10 +24,9 @@ public class Atleta {
             Random random = new Random();
             int min = 100000;
             int max = 999999;
-            this.matricula = random.nextInt( max - min + 1 ) + min;
+            this.matricula = random.nextInt(max - min + 1) + min;
         }
     }
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -61,10 +59,29 @@ public class Atleta {
     @Column(name = "massa", nullable = false)
     private double massa;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @Lob
+    @Column(name = "foto", columnDefinition = "LONGBLOB")
+    private byte[] foto;
+
+    // --- IMPORTANTE: Adicione o campo para o tipo de conteúdo da foto aqui ---
+    @Column(name = "foto_content_type")
+    private String fotoContentType;
+    // -----------------------------------------------------------------------
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true) // Adicione orphanRemoval = true se Responsavel deve ser excluído com Atleta
     @JoinColumn(name = "responsavel_id")
     private Responsavel responsavel;
 
+    @OneToMany(mappedBy = "atleta", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<DocumentoAtleta> documentos = new HashSet<>();
+
     @ManyToMany(mappedBy = "destinatariosAtletas")
     private Set<Comunicado> comunicadosRecebidos = new HashSet<>();
+
+    public int getIdade() {
+        if (this.dataNascimento == null) {
+            return 0; // Ou lance uma exceção, dependendo da sua regra de negócio
+        }
+        return LocalDate.now().getYear() - this.dataNascimento.getYear();
+    }
 }
