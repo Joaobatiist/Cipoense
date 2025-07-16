@@ -25,20 +25,22 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    // NOVO MÉTODO: generateToken que aceita userId e userType
-    public String generateToken(UserDetails userDetails, Long userId, String userType) {
+    // Modified generateToken method to accept 'userName'
+    public String generateToken(UserDetails userDetails, Long userId, String userType, String userName) { // ⭐ ADDED 'userName'
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId); // Adiciona o ID do usuário
-        claims.put("userType", userType); // Adiciona o tipo do usuário
+        claims.put("userId", userId); // Adds user ID
+        claims.put("userType", userType); // Adds user type
+        claims.put("userName", userName); // ⭐ ADDED THE ENTITY NAME CLAIM
+        // If you prefer to use "userName" as the claim key, change "userName" above to "userName".
 
-        // Adiciona as roles do usuário como um claim no token
+        // Adds user roles as a claim to the token
         claims.put("roles", userDetails.getAuthorities().stream()
                 .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
                 .collect(Collectors.toList()));
         return createToken(claims, userDetails.getUsername());
     }
 
-    // Método original (mantido para compatibilidade, se ainda usado em outro lugar)
+    // Original generateToken method (keep for compatibility if still used elsewhere)
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", userDetails.getAuthorities().stream()
@@ -46,7 +48,6 @@ public class JwtUtil {
                 .collect(Collectors.toList()));
         return createToken(claims, userDetails.getUsername());
     }
-
 
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
@@ -76,19 +77,23 @@ public class JwtUtil {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    // NOVO MÉTODO: Para extrair o userId do token
+    // Method to extract userId from the token
     public Long extractUserId(String token) {
         Claims claims = extractAllClaims(token);
-        // O valor do claim pode vir como Integer se for um número pequeno, então é melhor castar para Long
         return claims.get("userId", Long.class);
     }
 
-    // NOVO MÉTODO: Para extrair o userType do token
+    // Method to extract userType from the token
     public String extractUserType(String token) {
         Claims claims = extractAllClaims(token);
         return claims.get("userType", String.class);
     }
 
+    // ⭐ NEW METHOD: To extract the entity name from the token
+    public String extractEntityName(String token) { // Or extractUserName if you used "userName"
+        Claims claims = extractAllClaims(token);
+        return claims.get("userName", String.class); // ⭐ Make sure this key matches the one you put in 'generateToken'
+    }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);

@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/auth")
-
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -55,17 +54,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> authenticateUser(@RequestBody AuthRequest authRequest) {
         try {
-
+            // 1. Autentica o usuário usando as credenciais fornecidas
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getSenha()));
 
-
+            // 2. Carrega os detalhes completos do usuário (já feito pelo UserDetailsServiceImpl)
             UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getEmail());
 
-
+            // 3. Inicializa variáveis para os dados do token
             Long userId = null;
             String userType = null;
+            String entityName = null; // ⭐ NOVO: Variável para armazenar o nome da entidade
 
+            // 4. Busca o usuário nos diferentes repositórios para obter ID, Tipo e NOME
             Optional<? extends Super> foundSuperUser = Stream.of(
                             supervisorRepository.findByEmail(authRequest.getEmail()).map(s -> {
                                 s.setUserType("SUPERVISOR");
@@ -87,32 +88,30 @@ public class AuthController {
                 Super user = foundSuperUser.get();
                 userId = user.getId();
                 userType = user.getUserType();
+                entityName = user.getNome();
             } else {
                 Optional<Atleta> foundAtleta = atletaRepository.findByEmail(authRequest.getEmail());
                 if (foundAtleta.isPresent()) {
                     Atleta atleta = foundAtleta.get();
                     userId = atleta.getId();
                     userType = "ATLETA";
+
+                    entityName = atleta.getNome();
                 }
             }
 
-
-            if (userId == null || userType == null) {
-
-                throw new IllegalStateException("ID do usuário ou tipo não encontrado após autenticação.");
+            // 5. Verifica se os dados essenciais foram encontrados
+            if (userId == null || userType == null || entityName == null) {
+                throw new IllegalStateException("Dados do usuário (ID, tipo ou nome) não encontrados após autenticação.");
             }
 
-
-            String jwt = jwtUtil.generateToken(userDetails, userId, userType);
-
+            String jwt = jwtUtil.generateToken(userDetails, userId, userType, entityName);
 
             return ResponseEntity.ok(new AuthResponse(jwt));
 
         } catch (AuthenticationException e) {
-
             return ResponseEntity.status(401).body(new AuthResponse("Credenciais inválidas."));
         } catch (Exception e) {
-
             return ResponseEntity.status(500).body(new AuthResponse("Erro interno do servidor: " + e.getMessage()));
         }
     }

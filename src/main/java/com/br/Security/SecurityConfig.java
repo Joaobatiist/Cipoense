@@ -17,28 +17,32 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final com.br.Security.UserDetailsServiceImpl userDetailsService;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final UserDetailsServiceImpl userDetailsService;
+    // Removido: private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    // O JwtAuthenticationFilter será injetado diretamente no método securityFilterChain
 
-    public SecurityConfig(com.br.Security.UserDetailsServiceImpl userDetailsService, JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(UserDetailsServiceImpl userDetailsService) {
         this.userDetailsService = userDetailsService;
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        // Removido: this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Desabilita CSRF para APIs REST
+                .csrf(csrf -> csrf.disable()) // Desabilita CSRF para APIs REST (se apropriado para seu caso de uso)
                 .authorizeHttpRequests(authorize -> authorize
-                        // 1. Public endpoints (no authentication required)
+                        // 1. Endpoints públicos (não requerem autenticação)
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        // **Caminhos do Swagger UI (SpringDoc OpenAPI)**
                         .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/v3/api-docs/**", // Endpoint para a especificação OpenAPI (JSON/YAML)
+                                "/swagger-ui/**",  // Caminho base para os recursos estáticos do Swagger UI
+                                "/swagger-ui.html", // Redirecionamento comum para a UI principal
+                                "/webjars/**"      // Recursos estáticos do Swagger UI (CSS, JS, imagens)
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/atletas/nomes").permitAll() // Exemplo de endpoint público
 
+                        // 2. Endpoints com restrições de ROLE ou autenticação
                         .requestMatchers(HttpMethod.GET,"/api/atleta/profile/**").hasRole("ATLETA")
                         .requestMatchers(HttpMethod.POST,"/api/atleta/documents").hasRole("ATLETA")
                         .requestMatchers(HttpMethod.DELETE,"/api/atleta/documents/{documentId}").hasRole("ATLETA")
@@ -76,35 +80,54 @@ public class SecurityConfig {
 
                         // Endpoints de CADASTRO
                         .requestMatchers(HttpMethod.POST, "/api/cadastro").hasAnyRole("SUPERVISOR", "COORDENADOR") // Para cadastrar Alunos/Responsáveis
-                        .requestMatchers(HttpMethod.POST, "/cadastro/funcionarios").hasAnyRole("SUPERVISOR", "COORDENADOR") // Para cadastrar outros funcionários
+                        .requestMatchers(HttpMethod.POST, "/cadastro/funcionarios").permitAll() // Para cadastrar outros funcionários
 
                         // Acesso à lista de Alunos (geral)
                         .requestMatchers(HttpMethod.GET, "/api/atletas").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
 
-                        // Endpoints de EVENTOS (Criar, Atualizar, Deletar exigem roles específicas - CORRIGIDO /api/eventos/**)
+                        // Endpoints de EVENTOS (Criar, Atualizar, Deletar exigem roles específicas)
                         .requestMatchers(HttpMethod.POST, "/api/eventos").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.PUT, "/api/eventos/**").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.DELETE, "/api/eventos/**").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
 
 
-                        // 3. Endpoints que exigem APENAS AUTENTICAÇÃO (qualquer usuário logado)
-                        // A LÓGICA DE FILTRAGEM (apenas os comunicados do usuário logado) ESTÁ NO ComunicadoService
+                        // Endpoints que exigem APENAS AUTENTICAÇÃO (qualquer usuário logado)
                         .requestMatchers(HttpMethod.GET, "/api/comunicados").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/comunicados/{id}").authenticated()
 
-                        // Endpoints de ROLE SPECÍFICA - Mantidos
+                        // Endpoints de ROLE ESPECÍFICA
                         .requestMatchers("/api/supervisor/**").hasRole("SUPERVISOR")
                         .requestMatchers("/api/coordenador/**").hasRole("COORDENADOR")
                         .requestMatchers("/api/tecnico/**").hasRole("TECNICO")
                         .requestMatchers("/api/atleta/**").hasRole("ATLETA") // Se houver endpoints específicos para alunos
 
+                        // Endpoints de Listagem
+                        .requestMatchers(HttpMethod.GET,"/api/atletas/listagem").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.GET,"/api/atletas/subdivisoes").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
 
-                        // 4. Todas as outras requisições (catch-all) requerem autenticação
+                        // Endpoints de Relatórios
+                        .requestMatchers(HttpMethod.POST, "/api/relatoriogeral/cadastrar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/relatoriogeral/atualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/relatoriogeral/deletar").hasAnyRole("SUPERVISOR", "COORDENADOR")
+                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/visualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
+
+                        .requestMatchers(HttpMethod.POST, "/api/relatorios/tatico").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/relatorios/tatico/atualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/relatorios/tatico/deletar").hasAnyRole("SUPERVISOR", "COORDENADOR")
+                        .requestMatchers(HttpMethod.GET, "/api/relatorios/tatico/visualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
+
+                        .requestMatchers(HttpMethod.POST, "/api/relatorios/desempenho").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/relatorios/desempenho/atualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/relatorios/desempenho/deletar").hasAnyRole("SUPERVISOR", "COORDENADOR")
+                        .requestMatchers(HttpMethod.GET, "/api/relatorios/desempenho/visualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
+
+                        // Todas as outras requisições (catch-all) requerem autenticação
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Sem estado para JWT
                 )
+                // Adiciona o filtro JWT ANTES do UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
