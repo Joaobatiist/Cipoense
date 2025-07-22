@@ -5,65 +5,65 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties; // Importar
+import com.fasterxml.jackson.annotation.JsonBackReference; // Importar
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "relatorio_tecnico") // Nome da tabela no banco de dados
+@Table(name = "relatorio_tecnico")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Adicionado aqui
 public class RelatorioDesempenho {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Chave primária para esta tabela
+    private Long id;
 
-    // Relacionamento One-to-One com RelatorioAvaliacaoGeral
-    // @JoinColumn indica a coluna de chave estrangeira nesta tabela
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "relatorio_avaliacao_geral_id", unique = true, nullable = false)
+    @JsonBackReference // Indicar que este é o lado "back" do relacionamento, para evitar ciclo com RelatorioAvaliacaoGeral
     private RelatorioAvaliacaoGeral relatorioAvaliacaoGeral;
 
-    // Relacionamento Many-to-One com Atleta (um relatório de desempenho pertence a um atleta)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "atleta_id", nullable = false) // Coluna de chave estrangeira na tabela relatorio_tecnico
+    @JoinColumn(name = "atleta_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "comunicadosRecebidos", "relatoriosDesempenho", "relatoriosTaticoPsicologico"}) // Adicionado para evitar ciclos ou proxies não serializáveis do Atleta
+    // As propriedades "comunicadosRecebidos", "relatoriosDesempenho", "relatoriosTaticoPsicologico" são inferidas se Atleta as tiver como OneToMany/ManyToMany
     private Atleta atleta;
 
-    // --- Campos de Avaliação Técnica ---
     @Column(name="controle")
-    private int controle; // Habilidade de controle de bola
+    private int controle;
 
     @Column(name="recepcao")
-    private int recepcao; // Habilidade de recepção de bola
+    private int recepcao;
 
     @Column(name="dribles")
-    private int dribles; // Habilidade de drible
+    private int dribles;
 
     @Column(name="passe")
-    private int passe; // Habilidade de passe
+    private int passe;
 
     @Column(name="tiro")
-    private int tiro; // Habilidade de chute a gol
+    private int tiro;
 
     @Column(name="cruzamento")
-    private int cruzamento; // Habilidade de cruzamento
+    private int cruzamento;
 
     @Column(name="giro")
-    private int giro; // Habilidade de giro com a bola
+    private int giro;
 
-    @Column(name="manuseio_de_bola") // Nome de coluna mais padronizado
-    private int manuseioDeBola; // Habilidade de manuseio geral da bola
+    @Column(name="manuseio_de_bola")
+    private int manuseioDeBola;
 
-    @Column(name="forca_chute") // Nome de coluna mais padronizado
-    private int forcaChute; // Força no chute
+    @Column(name="forca_chute")
+    private int forcaChute;
 
-    @Column(name="gerenciamento_de_gols") // Nome de coluna mais padronizado
-    private int gerenciamentoDeGols; // Gerenciamento de gols (para goleiros, ou situações de gol)
+    @Column(name="gerenciamento_de_gols")
+    private int gerenciamentoDeGols;
 
-    @Column(name="jogo_ofensivo") // Nome de coluna mais padronizado
-    private int jogoOfensivo; // Desempenho em situações ofensivas
+    @Column(name="jogo_ofensivo")
+    private int jogoOfensivo;
 
-    @Column(name="jogo_defensivo") // Nome de coluna mais padronizado
-    private int jogoDefensivo; // Desempenho em situações defensivas
-
-    // Métodos Getter e Setter gerados pelo Lombok (@Getter, @Setter)
+    @Column(name="jogo_defensivo")
+    private int jogoDefensivo;
 }

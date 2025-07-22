@@ -3,20 +3,27 @@ package com.br.Service;
 import com.br.Entity.*;
 import com.br.Repository.AtletaRepository;
 import com.br.Repository.RelatorioAvaliacaoGeralRepository;
-import com.br.Request.CriarAvaliacaoRequest; // Importar o DTO de Requisição
-import com.br.Response.AvaliacaoGeralResponse; // Importar o DTO de Resposta
+import com.br.Request.CriarAvaliacaoRequest;
+import com.br.Response.AvaliacaoGeralResponse;
+import com.br.Response.RelatorioDesempenhoResponse;
+import com.br.Response.RelatorioTaticoPsicologicoResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RelatorioAvaliacaoGService {
 
     private final RelatorioAvaliacaoGeralRepository relatorioAvaliacaoGeralRepository;
     private final AtletaRepository atletaRepository;
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     @Autowired
     public RelatorioAvaliacaoGService(RelatorioAvaliacaoGeralRepository relatorioAvaliacaoGeralRepository,
@@ -25,30 +32,27 @@ public class RelatorioAvaliacaoGService {
         this.atletaRepository = atletaRepository;
     }
 
-    /**
-     * Cadastra um novo Relatório de Avaliação Geral completo, incluindo dados de desempenho e tático/psicológico.
-     * Recebe um CriarAvaliacaoRequest, mapeia para as entidades e persiste.
-     * Retorna um AvaliacaoGeralResponse com informações resumidas.
-     *
-     * @param request O DTO de requisição contendo todos os dados da avaliação.
-     * @return Um AvaliacaoGeralResponse com informações do relatório criado.
-     * @throws IllegalArgumentException se o ID do Atleta for nulo.
-     * @throws RuntimeException se o Atleta não for encontrado.
-     */
     @Transactional
     public AvaliacaoGeralResponse cadastrarRelatorioGeral(CriarAvaliacaoRequest request) {
-        // 1. Buscar e validar o Atleta
         if (request.getAtletaId() == null) {
             throw new IllegalArgumentException("ID do Atleta é obrigatório para cadastrar o relatório geral.");
         }
         Atleta atleta = atletaRepository.findById(request.getAtletaId())
                 .orElseThrow(() -> new RuntimeException("Atleta com ID " + request.getAtletaId() + " não encontrado."));
 
-        // 2. Criar a entidade RelatorioAvaliacaoGeral e popular seus campos
         RelatorioAvaliacaoGeral relatorioGeral = new RelatorioAvaliacaoGeral();
         relatorioGeral.setAtleta(atleta);
         relatorioGeral.setUserName(request.getUserName());
-        relatorioGeral.setSubDivisao(atleta.getSubDivisao());
+
+        // **CORREÇÃO MAIS PROVÁVEL AQUI:**
+        // A entidade RelatorioAvaliacaoGeral espera String para subDivisao,
+        // mas Atleta.getSubDivisao() retorna o ENUM SubDivisao.
+        if (atleta.getSubDivisao() != null) {
+            relatorioGeral.setSubDivisao(atleta.getSubDivisao()); // Convertendo ENUM para String
+        } else {
+            relatorioGeral.setSubDivisao(null);
+        }
+
         relatorioGeral.setDataAvaliacao(request.getDataAvaliacao());
         relatorioGeral.setPeriodoTreino(request.getPeriodoTreino());
         relatorioGeral.setFeedbackTreinador(request.getFeedbackTreinador());
@@ -58,9 +62,9 @@ public class RelatorioAvaliacaoGService {
         relatorioGeral.setAreasAprimoramento(request.getAreasAprimoramento());
         relatorioGeral.setMetasObjetivos(request.getMetasObjetivos());
 
-        // 3. Criar e associar a entidade RelatorioDesempenho
         if (request.getRelatorioDesempenho() != null) {
             RelatorioDesempenho relatorioDesempenho = new RelatorioDesempenho();
+            // ... (população dos campos de RelatorioDesempenho)
             relatorioDesempenho.setControle(request.getRelatorioDesempenho().getControle());
             relatorioDesempenho.setRecepcao(request.getRelatorioDesempenho().getRecepcao());
             relatorioDesempenho.setDribles(request.getRelatorioDesempenho().getDribles());
@@ -73,13 +77,13 @@ public class RelatorioAvaliacaoGService {
             relatorioDesempenho.setGerenciamentoDeGols(request.getRelatorioDesempenho().getGerenciamentoDeGols());
             relatorioDesempenho.setJogoOfensivo(request.getRelatorioDesempenho().getJogoOfensivo());
             relatorioDesempenho.setJogoDefensivo(request.getRelatorioDesempenho().getJogoDefensivo());
-            relatorioDesempenho.setAtleta(atleta); // Associar o atleta também ao relatório filho
-            relatorioGeral.setRelatorioDeDesempenho(relatorioDesempenho); // Seta a bidirecionalidade
+            relatorioDesempenho.setAtleta(atleta);
+            relatorioGeral.setRelatorioDeDesempenho(relatorioDesempenho);
         }
 
-        // 4. Criar e associar a entidade RelatorioTaticoPsicologico
         if (request.getRelatorioTaticoPsicologico() != null) {
             RelatorioTaticoPsicologico relatorioTaticoPsicologico = new RelatorioTaticoPsicologico();
+            // ... (população dos campos de RelatorioTaticoPsicologico)
             relatorioTaticoPsicologico.setEsportividade(request.getRelatorioTaticoPsicologico().getEsportividade());
             relatorioTaticoPsicologico.setDisciplina(request.getRelatorioTaticoPsicologico().getDisciplina());
             relatorioTaticoPsicologico.setFoco(request.getRelatorioTaticoPsicologico().getFoco());
@@ -90,24 +94,59 @@ public class RelatorioAvaliacaoGService {
             relatorioTaticoPsicologico.setTrabalhoEmEquipe(request.getRelatorioTaticoPsicologico().getTrabalhoEmEquipe());
             relatorioTaticoPsicologico.setAtributosFisicos(request.getRelatorioTaticoPsicologico().getAtributosFisicos());
             relatorioTaticoPsicologico.setAtuarSobPressao(request.getRelatorioTaticoPsicologico().getAtuarSobPressao());
-            relatorioTaticoPsicologico.setAtleta(atleta); // Associar o atleta também ao relatório filho
-            relatorioGeral.setRelatorioTaticoPsicologico(relatorioTaticoPsicologico); // Seta a bidirecionalidade
+            relatorioTaticoPsicologico.setAtleta(atleta);
+            relatorioGeral.setRelatorioTaticoPsicologico(relatorioTaticoPsicologico);
         }
 
-        // 5. Salvar o relatório geral (que irá cascatear o salvamento dos filhos)
         RelatorioAvaliacaoGeral savedRelatorio = relatorioAvaliacaoGeralRepository.save(relatorioGeral);
 
-        // 6. Criar e retornar o DTO de resposta
-        return new AvaliacaoGeralResponse();
+        AvaliacaoGeralResponse response = new AvaliacaoGeralResponse();
+        response.setId(savedRelatorio.getId());
+        response.setAtletaId(savedRelatorio.getAtleta().getId());
+        response.setNomeAtleta(savedRelatorio.getAtleta().getNome());
+        response.setUserName(savedRelatorio.getUserName());
+        if (savedRelatorio.getDataAvaliacao() != null) {
+            response.setDataAvaliacao(savedRelatorio.getDataAvaliacao().format(DATE_FORMATTER));
+        } else {
+            response.setDataAvaliacao(null);
+        }
+        response.setPeriodoTreino(savedRelatorio.getPeriodoTreino());
+
+        // **CORREÇÃO AQUI (se RelatorioAvaliacaoGeral.subDivisao é String e Atleta.subDivisao é enum):**
+        // Se `savedRelatorio.getSubDivisao()` já é String (porque foi salvo como String),
+        // então não precisa de `.name()` aqui. A linha já estava certa na última versão.
+        // O erro indica que `savedRelatorio.getSubDivisao()` ESTÁ RETORNANDO um ENUM.
+        // Isso sugere que o campo `subDivisao` na entidade `RelatorioAvaliacaoGeral` *não* é String, mas sim `SubDivisao` (o enum).
+        // Se for esse o caso, precisamos mudar o tipo do campo na entidade ou converter aqui.
+        // Vou assumir que o campo na entidade *deve* ser `SubDivisao` (o enum) e que queremos a String para o DTO.
+        if (savedRelatorio.getSubDivisao() != null) {
+            // Se savedRelatorio.getSubDivisao() for um enum, use .name()
+            if (savedRelatorio.getSubDivisao() instanceof Enum) { // Verificação para garantir que é um enum
+                response.setSubDivisao(savedRelatorio.getSubDivisao().name());
+            } else { // Se já for String (o que seria ideal no DTO)
+                response.setSubDivisao(savedRelatorio.getSubDivisao().toString()); // Ou apenas getSubDivisao() se já for String
+            }
+        } else {
+            response.setSubDivisao(null);
+        }
+
+        response.setFeedbackTreinador(savedRelatorio.getFeedbackTreinador());
+        response.setFeedbackAvaliador(savedRelatorio.getFeedbackAvaliador());
+        response.setPontosFortes(savedRelatorio.getPontosFortes());
+        response.setPontosFracos(savedRelatorio.getPontosFracos());
+        response.setAreasAprimoramento(savedRelatorio.getAreasAprimoramento());
+        response.setMetasObjetivos(savedRelatorio.getMetasObjetivos());
+
+        if (savedRelatorio.getRelatorioDesempenho() != null) {
+            response.setRelatorioDesempenho(new RelatorioDesempenhoResponse(savedRelatorio.getRelatorioDesempenho()));
+        }
+        if (savedRelatorio.getRelatorioTaticoPsicologico() != null) {
+            response.setRelatorioTaticoPsicologico(new RelatorioTaticoPsicologicoResponse(savedRelatorio.getRelatorioTaticoPsicologico()));
+        }
+        return response;
     }
 
-    /**
-     * Busca um Relatório de Avaliação Geral pelo seu ID.
-     *
-     * @param id O ID do relatório a ser buscado.
-     * @return Um Optional contendo o Relatório de Avaliação Geral, se encontrado.
-     */
-    @Transactional(readOnly = true) // Adicionado readOnly para otimização em operações de leitura
+    @Transactional(readOnly = true)
     public Optional<RelatorioAvaliacaoGeral> findById(Long id) {
         return relatorioAvaliacaoGeralRepository.findById(id);
     }
@@ -117,9 +156,57 @@ public class RelatorioAvaliacaoGService {
         relatorioAvaliacaoGeralRepository.deleteById(id);
     }
 
-    @Transactional(readOnly = true) // Adicionado readOnly para otimização em operações de leitura
-    public List<RelatorioAvaliacaoGeral> listarRelatorioGeral() {
-        return relatorioAvaliacaoGeralRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<AvaliacaoGeralResponse> listarRelatorioGeral() {
+        List<RelatorioAvaliacaoGeral> avaliacoes = relatorioAvaliacaoGeralRepository.findAll();
+
+        return avaliacoes.stream().map(avaliacao -> {
+            AvaliacaoGeralResponse dto = new AvaliacaoGeralResponse();
+            dto.setId(avaliacao.getId());
+            if (avaliacao.getAtleta() != null) {
+                dto.setAtletaId(avaliacao.getAtleta().getId());
+                dto.setNomeAtleta(avaliacao.getAtleta().getNome());
+            } else {
+                dto.setAtletaId(null);
+                dto.setNomeAtleta("Atleta Desconhecido");
+            }
+            dto.setUserName(avaliacao.getUserName());
+            if (avaliacao.getDataAvaliacao() != null) {
+                dto.setDataAvaliacao(avaliacao.getDataAvaliacao().format(DATE_FORMATTER));
+            } else {
+                dto.setDataAvaliacao(null);
+            }
+            dto.setPeriodoTreino(avaliacao.getPeriodoTreino());
+
+            // **CORREÇÃO AQUI (se RelatorioAvaliacaoGeral.subDivisao é SubDivisao (enum) e DTO espera String):**
+            // Se `avaliacao.getSubDivisao()` está retornando o ENUM, precisamos do `.name()`.
+            if (avaliacao.getSubDivisao() != null) {
+                // Verificação para garantir que é um enum antes de chamar .name()
+                if (avaliacao.getSubDivisao() instanceof Enum) {
+                    dto.setSubDivisao(avaliacao.getSubDivisao().name());
+                } else {
+                    dto.setSubDivisao(avaliacao.getSubDivisao().toString()); // Caso seja um objeto SubDivisao complexo, ou já String
+                }
+            } else {
+                dto.setSubDivisao(null);
+            }
+
+            dto.setFeedbackTreinador(avaliacao.getFeedbackTreinador());
+            dto.setFeedbackAvaliador(avaliacao.getFeedbackAvaliador());
+            dto.setPontosFortes(avaliacao.getPontosFortes());
+            dto.setPontosFracos(avaliacao.getPontosFracos());
+            dto.setAreasAprimoramento(avaliacao.getAreasAprimoramento());
+            dto.setMetasObjetivos(avaliacao.getMetasObjetivos());
+
+            if (avaliacao.getRelatorioDesempenho() != null) {
+                dto.setRelatorioDesempenho(new RelatorioDesempenhoResponse(avaliacao.getRelatorioDesempenho()));
+            }
+            if (avaliacao.getRelatorioTaticoPsicologico() != null) {
+                dto.setRelatorioTaticoPsicologico(new RelatorioTaticoPsicologicoResponse(avaliacao.getRelatorioTaticoPsicologico()));
+            }
+
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     @Transactional
@@ -129,7 +216,6 @@ public class RelatorioAvaliacaoGService {
         if (existingRelatorioOptional.isPresent()) {
             RelatorioAvaliacaoGeral relatorioExistente = existingRelatorioOptional.get();
 
-            // Atualiza os campos do relatório geral com os novos valores
             relatorioExistente.setDataAvaliacao(relatorioAvaliacaoGeralAtualizado.getDataAvaliacao());
             relatorioExistente.setPeriodoTreino(relatorioAvaliacaoGeralAtualizado.getPeriodoTreino());
             relatorioExistente.setFeedbackTreinador(relatorioAvaliacaoGeralAtualizado.getFeedbackTreinador());
@@ -139,15 +225,29 @@ public class RelatorioAvaliacaoGService {
             relatorioExistente.setAreasAprimoramento(relatorioAvaliacaoGeralAtualizado.getAreasAprimoramento());
             relatorioExistente.setMetasObjetivos(relatorioAvaliacaoGeralAtualizado.getMetasObjetivos());
 
-            // A associação com Atleta geralmente não muda em uma atualização.
-            // Se o Atleta puder ser alterado, a lógica para buscar e setar o novo atleta seria adicionada aqui.
+            // **ATENÇÃO AQUI na atualização:**
+            // Se `relatorioAvaliacaoGeralAtualizado.getSubDivisao()` é uma String
+            // e `relatorioExistente.setSubDivisao()` espera um Enum, você precisaria fazer:
+            // relatorioExistente.setSubDivisao(SubDivisao.valueOf(relatorioAvaliacaoGeralAtualizado.getSubDivisao()));
+            // Mas se ambos são String (como o DTO de request e o campo da entidade RelatorioAvaliacaoGeral),
+            // a atribuição direta é correta.
+            // Pelo erro, a *entidade RelatorioAvaliacaoGeral* parece ter `SubDivisao` como um enum.
+            // Se o request de PUT envia uma String, você precisaria converter:
+            if (relatorioAvaliacaoGeralAtualizado.getSubDivisao() != null) {
+                // Se o campo SubDivisao da *entidade* RelatorioAvaliacaoGeral é um ENUM
+                // e o DTO de atualização (`relatorioAvaliacaoGeralAtualizado`) tem uma String,
+                // você precisaria converter a String para o ENUM:
+                // relatorioExistente.setSubDivisao(SubDivisao.valueOf(relatorioAvaliacaoGeralAtualizado.getSubDivisao()));
 
-            // Atualiza os relatórios filhos (Desempenho e Tático/Psicológico)
-            // A lógica aqui é para atualizar os filhos existentes ou criar novos se não existirem
+                // Se o campo SubDivisao da *entidade* RelatorioAvaliacaoGeral é uma String
+                // e o DTO de atualização (`relatorioAvaliacaoGeralAtualizado`) tem uma String,
+                // então a linha abaixo está correta:
+                relatorioExistente.setSubDivisao(relatorioAvaliacaoGeralAtualizado.getSubDivisao());
+            }
+
             if (relatorioAvaliacaoGeralAtualizado.getRelatorioDesempenho() != null) {
                 RelatorioDesempenho novoDesempenho = relatorioAvaliacaoGeralAtualizado.getRelatorioDesempenho();
                 if (relatorioExistente.getRelatorioDesempenho() != null) {
-                    // Se já existe um relatório de desempenho, atualiza os campos
                     RelatorioDesempenho desempenhoExistente = relatorioExistente.getRelatorioDesempenho();
                     desempenhoExistente.setControle(novoDesempenho.getControle());
                     desempenhoExistente.setRecepcao(novoDesempenho.getRecepcao());
@@ -161,15 +261,13 @@ public class RelatorioAvaliacaoGService {
                     desempenhoExistente.setGerenciamentoDeGols(novoDesempenho.getGerenciamentoDeGols());
                     desempenhoExistente.setJogoOfensivo(novoDesempenho.getJogoOfensivo());
                     desempenhoExistente.setJogoDefensivo(novoDesempenho.getJogoDefensivo());
-                    // Garante que o atleta também esteja setado no filho se for uma nova criação ou atualização
                     desempenhoExistente.setAtleta(relatorioExistente.getAtleta());
                 } else {
-                    // Se não existe, cria um novo e associa
                     relatorioExistente.setRelatorioDeDesempenho(novoDesempenho);
-                    novoDesempenho.setAtleta(relatorioExistente.getAtleta()); // Associar ao atleta
+                    novoDesempenho.setAtleta(relatorioExistente.getAtleta());
                 }
             }
-            // Repetir a lógica para RelatorioTaticoPsicologico
+
             if (relatorioAvaliacaoGeralAtualizado.getRelatorioTaticoPsicologico() != null) {
                 RelatorioTaticoPsicologico novoTatico = relatorioAvaliacaoGeralAtualizado.getRelatorioTaticoPsicologico();
                 if (relatorioExistente.getRelatorioTaticoPsicologico() != null) {
@@ -184,11 +282,10 @@ public class RelatorioAvaliacaoGService {
                     taticoExistente.setTrabalhoEmEquipe(novoTatico.getTrabalhoEmEquipe());
                     taticoExistente.setAtributosFisicos(novoTatico.getAtributosFisicos());
                     taticoExistente.setAtuarSobPressao(novoTatico.getAtuarSobPressao());
-                    // Garante que o atleta também esteja setado no filho
                     taticoExistente.setAtleta(relatorioExistente.getAtleta());
                 } else {
                     relatorioExistente.setRelatorioTaticoPsicologico(novoTatico);
-                    novoTatico.setAtleta(relatorioExistente.getAtleta()); // Associar ao atleta
+                    novoTatico.setAtleta(relatorioExistente.getAtleta());
                 }
             }
 
