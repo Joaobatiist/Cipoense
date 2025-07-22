@@ -95,7 +95,7 @@ public class AuthController {
                     Atleta atleta = foundAtleta.get();
                     userId = atleta.getId();
                     userType = "ATLETA";
-
+                    boolean userIsencao = atleta.isIsencao();
                     entityName = atleta.getNome();
                 }
             }

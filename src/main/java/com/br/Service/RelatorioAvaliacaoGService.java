@@ -225,23 +225,8 @@ public class RelatorioAvaliacaoGService {
             relatorioExistente.setAreasAprimoramento(relatorioAvaliacaoGeralAtualizado.getAreasAprimoramento());
             relatorioExistente.setMetasObjetivos(relatorioAvaliacaoGeralAtualizado.getMetasObjetivos());
 
-            // **ATENÇÃO AQUI na atualização:**
-            // Se `relatorioAvaliacaoGeralAtualizado.getSubDivisao()` é uma String
-            // e `relatorioExistente.setSubDivisao()` espera um Enum, você precisaria fazer:
-            // relatorioExistente.setSubDivisao(SubDivisao.valueOf(relatorioAvaliacaoGeralAtualizado.getSubDivisao()));
-            // Mas se ambos são String (como o DTO de request e o campo da entidade RelatorioAvaliacaoGeral),
-            // a atribuição direta é correta.
-            // Pelo erro, a *entidade RelatorioAvaliacaoGeral* parece ter `SubDivisao` como um enum.
-            // Se o request de PUT envia uma String, você precisaria converter:
             if (relatorioAvaliacaoGeralAtualizado.getSubDivisao() != null) {
-                // Se o campo SubDivisao da *entidade* RelatorioAvaliacaoGeral é um ENUM
-                // e o DTO de atualização (`relatorioAvaliacaoGeralAtualizado`) tem uma String,
-                // você precisaria converter a String para o ENUM:
-                // relatorioExistente.setSubDivisao(SubDivisao.valueOf(relatorioAvaliacaoGeralAtualizado.getSubDivisao()));
 
-                // Se o campo SubDivisao da *entidade* RelatorioAvaliacaoGeral é uma String
-                // e o DTO de atualização (`relatorioAvaliacaoGeralAtualizado`) tem uma String,
-                // então a linha abaixo está correta:
                 relatorioExistente.setSubDivisao(relatorioAvaliacaoGeralAtualizado.getSubDivisao());
             }
 
