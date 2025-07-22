@@ -1,5 +1,6 @@
 package com.br.Entity;
 
+import com.br.Enums.Posicao;
 import com.br.Enums.Role;
 import com.br.Enums.SubDivisao;
 import jakarta.persistence.*;
@@ -43,6 +44,12 @@ public class Atleta {
 
     @Column(name="email", nullable = false, unique = true)
     private String email;
+
+    @Column(name = "isencao")
+    private boolean isencao;
+
+    @Enumerated(EnumType.STRING)
+    private Posicao posicao;
 
     @Enumerated(EnumType.STRING)
     private SubDivisao subDivisao;
