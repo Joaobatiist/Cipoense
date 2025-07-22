@@ -80,7 +80,7 @@ public class Atleta {
 
     public int getIdade() {
         if (this.dataNascimento == null) {
-            return 0; // Ou lance uma exceção, dependendo da sua regra de negócio
+            return 0;
         }
         return LocalDate.now().getYear() - this.dataNascimento.getYear();
     }

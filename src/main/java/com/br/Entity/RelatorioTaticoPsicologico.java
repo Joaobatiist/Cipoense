@@ -4,58 +4,59 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties; // Importar
+import com.fasterxml.jackson.annotation.JsonBackReference; // Importar
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "relatorio_tatico") // Nome da tabela no banco de dados
+@Table(name = "relatorio_tatico")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Adicionado aqui
 public class RelatorioTaticoPsicologico {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Chave primária para esta tabela
+    private Long id;
 
-    // Relacionamento One-to-One com RelatorioAvaliacaoGeral
-    // @JoinColumn indica a coluna de chave estrangeira nesta tabela
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "relatorio_avaliacao_geral_id", unique = true, nullable = false)
+    @JsonBackReference // Indicar que este é o lado "back" do relacionamento, para evitar ciclo com RelatorioAvaliacaoGeral
     private RelatorioAvaliacaoGeral relatorioAvaliacaoGeral;
 
-    // Relacionamento Many-to-One com Atleta (um relatório tático/psicológico pertence a um atleta)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "atleta_id", nullable = false) // Coluna de chave estrangeira na tabela relatorio_tatico
+    @JoinColumn(name = "atleta_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "comunicadosRecebidos", "relatoriosDesempenho", "relatoriosTaticoPsicologico"}) // Adicionado para evitar ciclos ou proxies não serializáveis do Atleta
+    // As propriedades "comunicadosRecebidos", "relatoriosDesempenho", "relatoriosTaticoPsicologico" são inferidas se Atleta as tiver como OneToMany/ManyToMany
     private Atleta atleta;
 
-    // --- Campos de Avaliação Tática/Psicológica/Física ---
     @Column(name="esportividade")
-    private int esportividade; // Nível de esportividade
+    private int esportividade;
 
     @Column(name="disciplina")
-    private int disciplina; // Nível de disciplina
+    private int disciplina;
 
     @Column(name="foco")
-    private int foco; // Nível de foco
+    private int foco;
 
     @Column(name="confianca")
-    private int confianca; // Nível de confiança
+    private int confianca;
 
     @Column(name="tomada_de_decisoes")
-    private int tomadaDecisoes; // Habilidade de tomada de decisões
+    private int tomadaDecisoes;
 
     @Column(name="compromisso")
-    private int compromisso; // Nível de compromisso
+    private int compromisso;
 
     @Column(name="lideranca")
-    private int lideranca; // Habilidade de liderança
+    private int lideranca;
 
     @Column(name="trabalho_em_equipe")
-    private int trabalhoEmEquipe; // Habilidade de trabalho em equipe
+    private int trabalhoEmEquipe;
 
     @Column(name="atributos_fisicos")
-    private int atributosFisicos; // Avaliação de atributos físicos
+    private int atributosFisicos;
 
     @Column(name="atuar_sob_pressao")
-    private int atuarSobPressao; // Capacidade de atuar sob pressão
-
+    private int atuarSobPressao;
 }

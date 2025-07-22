@@ -47,7 +47,7 @@ public class Comunicado {
     )
     private Set<Atleta> destinatariosAtletas = new HashSet<>();
 
-    // Destinatários Coordenadores
+
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "comunicado_destinatario_coordenador", // Nova tabela de junção
@@ -56,7 +56,7 @@ public class Comunicado {
     )
     private Set<Coordenador> destinatariosCoordenadores = new HashSet<>();
 
-    // Destinatários Supervisores
+
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "comunicado_destinatario_supervisor", // Nova tabela de junção

@@ -18,12 +18,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
-    // Removido: private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    // O JwtAuthenticationFilter será injetado diretamente no método securityFilterChain
 
     public SecurityConfig(UserDetailsServiceImpl userDetailsService) {
         this.userDetailsService = userDetailsService;
-        // Removido: this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
@@ -35,10 +32,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         // **Caminhos do Swagger UI (SpringDoc OpenAPI)**
                         .requestMatchers(
-                                "/v3/api-docs/**", // Endpoint para a especificação OpenAPI (JSON/YAML)
-                                "/swagger-ui/**",  // Caminho base para os recursos estáticos do Swagger UI
-                                "/swagger-ui.html", // Redirecionamento comum para a UI principal
-                                "/webjars/**"      // Recursos estáticos do Swagger UI (CSS, JS, imagens)
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/webjars/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/atletas/nomes").permitAll() // Exemplo de endpoint público
 
@@ -110,6 +107,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/relatoriogeral/atualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.DELETE, "/api/relatoriogeral/deletar").hasAnyRole("SUPERVISOR", "COORDENADOR")
                         .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/visualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
+
+                        // **** ADICIONE ESTA LINHA ****
+                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/buscarporid/**").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA") // Permitir acesso pelo ID
 
                         .requestMatchers(HttpMethod.POST, "/api/relatorios/tatico").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.PUT, "/api/relatorios/tatico/atualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")

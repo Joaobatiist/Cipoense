@@ -9,13 +9,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties; // Importar
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "relatorio_avaliacao_geral") // Nome da tabela no banco de dados
+@Table(name = "relatorio_avaliacao_geral")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Adicionado aqui
 public class RelatorioAvaliacaoGeral {
 
     @Id
@@ -25,7 +27,11 @@ public class RelatorioAvaliacaoGeral {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "atleta_id")
     @Nullable
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "comunicadosRecebidos", "relatoriosDesempenho", "relatoriosTaticoPsicologico"}) // Adicionado para evitar ciclos ou proxies não serializáveis do Atleta
+    // A propriedade "comunicadosRecebidos" aqui é baseada no seu log anterior. Se Atleta não tiver isso, pode remover.
+    // As propriedades "relatoriosDesempenho" e "relatoriosTaticoPsicologico" são inferidas se Atleta as tiver como OneToMany/ManyToMany
     private Atleta atleta;
+
     @Enumerated(EnumType.STRING)
     private SubDivisao subDivisao;
 
@@ -53,29 +59,24 @@ public class RelatorioAvaliacaoGeral {
     @Column(columnDefinition = "TEXT")
     private String metasObjetivos;
 
-    // --- Relacionamentos com os relatórios detalhados (OneToOne) ---
-    // Mapeia para as entidades de relatório de desempenho e tático/psicológico
-    // mappedBy indica que a outra entidade (RelatorioDesempenho) é dona do relacionamento
     @OneToOne(mappedBy = "relatorioAvaliacaoGeral", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "relatorioAvaliacaoGeral", "atleta"}) // Adicionado aqui, ignorando o próprio relacionamento reverso
     private RelatorioDesempenho relatorioDesempenho;
 
-    // mappedBy indica que a outra entidade (RelatorioTaticoPsicologico) é dona do relacionamento
     @OneToOne(mappedBy = "relatorioAvaliacaoGeral", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "relatorioAvaliacaoGeral", "atleta"}) // Adicionado aqui, ignorando o próprio relacionamento reverso
     private RelatorioTaticoPsicologico relatorioTaticoPsicologico;
 
-    // --- Métodos de Conveniência para setar Relatórios Detalhados (para bidirecionalidade) ---
-    // Garante que a referência inversa seja setada corretamente
     public void setRelatorioDeDesempenho(RelatorioDesempenho relatorioDesempenho) {
         if (relatorioDesempenho != null) {
-            relatorioDesempenho.setRelatorioAvaliacaoGeral(this); // Seta a referência de volta na entidade filha
+            relatorioDesempenho.setRelatorioAvaliacaoGeral(this);
         }
         this.relatorioDesempenho = relatorioDesempenho;
     }
 
-    // Garante que a referência inversa seja setada corretamente
     public void setRelatorioTaticoPsicologico(RelatorioTaticoPsicologico relatorioTaticoPsicologico) {
         if (relatorioTaticoPsicologico != null) {
-            relatorioTaticoPsicologico.setRelatorioAvaliacaoGeral(this); // Seta a referência de volta na entidade filha
+            relatorioTaticoPsicologico.setRelatorioAvaliacaoGeral(this);
         }
         this.relatorioTaticoPsicologico = relatorioTaticoPsicologico;
     }

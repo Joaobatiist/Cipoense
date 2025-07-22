@@ -38,7 +38,6 @@ public class ListagemAtletasController {
     @PreAuthorize("hasAnyRole('SUPERVISOR', 'COORDENADOR', 'TECNICO')") // Ajuste as roles conforme necessário
     public ResponseEntity<List<String>> listarSubdivisoesDistintas() {
         List<Atleta> atletas = atletaRepository.findAll();
-        // Extrai as subdivisões, filtra valores nulos/vazios, remove duplicatas e coleta em uma lista de Strings
         List<String> subdivisoesDistintas = atletas.stream()
                 .map(atleta -> atleta.getSubDivisao() != null ? atleta.getSubDivisao().name() : null)
                 .filter(subdivisao -> subdivisao != null && !subdivisao.isEmpty())

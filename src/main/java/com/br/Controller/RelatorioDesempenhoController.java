@@ -22,7 +22,7 @@ public class RelatorioDesempenhoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('COORDENADOR', 'SUPERVISOR', 'TECNICO')")
+
     public ResponseEntity<RelatorioDesempenho> cadastrarrelatorioDesempenho(@RequestBody RelatorioDesempenho RelatorioDesempenho) {
         RelatorioDesempenho savedRelatorio = relatorioDesempenhoService.cadastrarRelatorioDesempenho(RelatorioDesempenho);
         return new ResponseEntity<>(savedRelatorio, HttpStatus.CREATED);
@@ -30,7 +30,7 @@ public class RelatorioDesempenhoController {
 
     // Endpoint para buscar por ID com todos os detalhes (Tecnico, Desempenho, Avaliadores)
     @GetMapping("/visualizar")
-    @PreAuthorize("hasAnyRole('Atleta', 'COORDENADOR', 'SUPERVISOR', 'TECNICO')")
+
     public ResponseEntity<List<RelatorioDesempenho>> getrelatorioDesempenho() {
         try {
             List<RelatorioDesempenho> relatorio = relatorioDesempenhoService.listarRelatorioDesempenho();
@@ -43,7 +43,7 @@ public class RelatorioDesempenhoController {
     }
 
     @DeleteMapping("/deletar")
-    @PreAuthorize("hasAnyRole('COORDENADOR', 'SUPERVISOR', 'TECNICO')")
+
     public ResponseEntity<Void> deleterelatorioDesempenho(@PathVariable Long id) {
         try {
             relatorioDesempenhoService.deleteByIdDesempenho(id);
@@ -54,7 +54,7 @@ public class RelatorioDesempenhoController {
     }
 
     @PutMapping("/atualizar")
-    @PreAuthorize("HasAnyRole('COORDENADOR', 'SUPERVISOR', 'TECNICO')")
+
     public ResponseEntity<RelatorioDesempenho>atualizarrelatorioDesempenho(@PathVariable Long id, @RequestBody RelatorioDesempenho relatorioDesempenho) {
         try {
             RelatorioDesempenho relatorioDesempenhoAtualizado = relatorioDesempenhoService.atualizarRelatorioDesempenho(id, relatorioDesempenho);

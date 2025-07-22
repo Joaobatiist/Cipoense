@@ -26,7 +26,6 @@ public class EstoqueController {
     }
 
 
-
     @PostMapping("/estoque")
     public ResponseEntity<Estoque> cadastrarItens (@RequestBody Estoque estoque) {
         try {
