@@ -64,7 +64,7 @@ public class AtletaProfileController {
         // Chame o método do serviço que já faz o salvamento e retorna a string Base64
         String base64FotoUrl = atletaProfileService.uploadPhoto(atletaId, file);
         return ResponseEntity.ok(base64FotoUrl);
-        // --- FIM DA MUDANÇA ESSENCIAL AQUI ---
+
     }
 
     @PostMapping("/documents")

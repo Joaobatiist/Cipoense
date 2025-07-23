@@ -43,6 +43,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,"/api/atleta/profile/**").hasRole("ATLETA")
                         .requestMatchers(HttpMethod.POST,"/api/atleta/documents").hasRole("ATLETA")
                         .requestMatchers(HttpMethod.DELETE,"/api/atleta/documents/{documentId}").hasRole("ATLETA")
+
+                                // In your SecurityConfig or similar class
+                                .requestMatchers(HttpMethod.GET,"/api/supervisor/atletas/**").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO") // For GET all and GET by ID
+                                .requestMatchers(HttpMethod.PUT,"/api/supervisor/atletas/**").hasAnyRole("SUPERVISOR", "COORDENADOR") // For UPDATE by ID
+                                .requestMatchers(HttpMethod.DELETE,"/api/supervisor/atletas/{atletaId}/documento-pdf").hasRole("SUPERVISOR")// For DELETE by ID and documents
+                                .requestMatchers(HttpMethod.POST,"/api/supervisor/atletas/{atletaId}/documento-pdf").hasAnyRole("SUPERVISOR", "COORDENADOR") // For PDF upload
+// ... (keep existing ATLETA rules for their own profile)
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/estoque"

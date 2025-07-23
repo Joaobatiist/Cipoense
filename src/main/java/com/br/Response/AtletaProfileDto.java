@@ -20,7 +20,14 @@ public class AtletaProfileDto {
     private SubDivisao subDivisao;
     private String dataNascimento;
     private String foto;
-    private String contatoResponsavel; // Este campo no DTO representará o telefone do Responsavel
+    private String contatoResponsavel;
+    private Boolean isAptoParaJogar;
+
+    // --- NOVOS CAMPOS PARA PDF ENVIADO EM BASE64 ---
+    private String documentoPdfBase64; // PDF em formato Base64 para o frontend
+    private String documentoPdfContentType; // Tipo do conteúdo (ex: "application/pdf")
+    // --- FIM DOS NOVOS CAMPOS ---
+
     private List<DocumentoDto> documentos;
 
     @Data
@@ -29,7 +36,7 @@ public class AtletaProfileDto {
     public static class DocumentoDto {
         private Long id;
         private String nome;
-        private String url;
+        private String url; // Esta URL ainda pode ser usada para outros documentos que não sejam o PDF principal
         private String tipo;
     }
 }

@@ -1,67 +1,62 @@
-HELP.md
-.gradle
+# Gradle
+.gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
-.vscode/
-
-### Java ###
-# Compiled class file
+*.jar
+*.war
+*.ear
 *.class
 
-# Log files
+# Maven (se for um projeto híbrido ou com alguma config maven)
+target/
+
+# Logs
 *.log
 logs/
-
-### Maven ###
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-
-### Application Specific ###
-# Arquivos de configuração com informações sensíveis
-application.properties       # Esta linha agora IGNORA especificamente application.properties
-application-*.properties     # Esta linha continua IGNORANDO outros arquivos application-*.properties
-application-*.yml
-!application.yml
-
-# Diretório de arquivos temporários
 temp/
+tmp/
 
-# Arquivos do sistema operacional
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Operating System Files
 .DS_Store
 Thumbs.db
+
+# Misc
+.env
+.env.*
+*.env
+
+# Node.js (se for React Native)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json # pode ser adicionado se voce usa yarn, mas geralmente nao para npm
+# expo
+.expo/
+web-build/
+dist/
+# Android
+android/build/
+android/.gradle/
+android/app/build/
+android/app/.cxx/
+android/app/src/main/assets/
+android/app/src/main/res/
+android/app/.idea/
+android/gradlew
+android/gradlew.bat
+android/gradle/wrapper/gradle-wrapper.jar
+# iOS
+ios/build/
+ios/*.xcodeproj/project.xcworkspace/
+ios/*.xcodeproj/xcuserdata/
+ios/.xcode.stash/
+ios/Pods/
+ios/.symlinks/
+ios/DerivedData/

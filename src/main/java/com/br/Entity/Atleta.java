@@ -45,7 +45,7 @@ public class Atleta {
     @Column(name="email", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "isencao")
+    @Column(name = "isencao", nullable = true)
     private boolean isencao;
 
     @Enumerated(EnumType.STRING)
@@ -70,12 +70,10 @@ public class Atleta {
     @Column(name = "foto", columnDefinition = "LONGBLOB")
     private byte[] foto;
 
-    // --- IMPORTANTE: Adicione o campo para o tipo de conteúdo da foto aqui ---
     @Column(name = "foto_content_type")
     private String fotoContentType;
-    // -----------------------------------------------------------------------
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true) // Adicione orphanRemoval = true se Responsavel deve ser excluído com Atleta
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "responsavel_id")
     private Responsavel responsavel;
 
@@ -84,6 +82,21 @@ public class Atleta {
 
     @ManyToMany(mappedBy = "destinatariosAtletas")
     private Set<Comunicado> comunicadosRecebidos = new HashSet<>();
+
+    // --- NOVOS CAMPOS PARA PDF NO BANCO ---
+
+    @Column(name = "is_apto_para_jogar", nullable = false)
+    private Boolean isAptoParaJogar = true;
+
+    @Lob // Indica que é um Large Object (BLOB no banco de dados)
+    @Column(name = "documento_pdf_bytes", columnDefinition = "LONGBLOB", nullable = true)
+    private byte[] documentoPdfBytes;
+
+    @Column(name = "documento_pdf_content_type", nullable = true)
+    private String documentoPdfContentType;
+
+    // --- FIM DOS NOVOS CAMPOS ---
+
 
     public int getIdade() {
         if (this.dataNascimento == null) {
