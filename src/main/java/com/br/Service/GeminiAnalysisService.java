@@ -176,13 +176,14 @@ public class GeminiAnalysisService {
         String promptText = String.format(
                 "Você é um treinador de futebol inteligente e experiente. Sua tarefa é analisar o desempenho do atleta %s " +
                         "com base em suas avaliações históricas e na avaliação mais recente. " +
-                        "Forneça uma análise personalizada de acordo com a posiçao do atleta, instrutiva e motivacional para o atleta, focando em:\n" +
-                        "1. **Pontos Fortes:** Destaque 3 a 5 pontos fortes claros com exemplos ou tendências de melhoria ao longo do tempo.\n" +
-                        "2. **Áreas de Aprimoramento:** Identifique 3 a 5 áreas específicas onde o atleta pode melhorar. Seja direto e construtivo.\n" +
-                        "3. **Como Melhorar (Plano de Ação):** Para cada área de aprimoramento, sugira 1-2 ações práticas e concretas que o atleta pode realizar nos treinos e jogos para desenvolver essas habilidades.\n" +
-                        "4. **Previsão de Desempenho:** Com base nas tendências observadas e no compromisso com o plano de ação, ofereça uma previsão realista (e encorajadora) do que o atleta pode alcançar em 3-6 meses. Evite promessas exageradas.\n" +
-                        "5. **Mensagem Final:** Uma mensagem de encorajamento e inspiração.\n\n" +
-                        "Use um tom de voz de treinador, motivador e claro. Formate a resposta de forma organizada com marcadores ou parágrafos claros para cada seção.\n\n" +
+                        "Não envie os tópicos em negrito"+
+                        "Forneça uma análise personalizada de acordo com a posiçao do atleta, levando em conta as principais caracteristicas de cada posição, instrutiva e motivacional, focando em:\n" +
+                        "1. Pontos Fortes: Destaque 3 a 5 pontos fortes claros com exemplos ou tendências de melhoria ao longo do tempo.\n" +
+                        "2. Áreas de Aprimoramento: Identifique 3 a 5 áreas específicas onde o atleta pode melhorar. Seja direto e construtivo.\n" +
+                        "3. Como Melhorar (Plano de Ação): Para cada área de aprimoramento, sugira 1-2 ações práticas e concretas que o atleta pode realizar nos treinos e jogos para desenvolver essas habilidades.\n" +
+                        "4. Previsão de Desempenho: Com base nas tendências observadas e no compromisso com o plano de ação, ofereça uma previsão realista (e encorajadora) do que o atleta pode alcançar em 3-6 meses. Evite promessas exageradas.\n" +
+                        "5. Mensagem Final: Uma mensagem de encorajamento e inspiração.\n" +
+                        "Use um tom de voz de treinador, motivador e claro. Formate a resposta de forma organizada com marcadores ou parágrafos claros para cada seção.\n" +
                         "%s" +
                         "--- Avaliação Mais Recente (%s) ---\n" +
                         "Desempenho: %s\n" +

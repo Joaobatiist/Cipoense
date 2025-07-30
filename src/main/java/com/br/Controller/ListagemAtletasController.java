@@ -30,7 +30,7 @@ public class ListagemAtletasController {
         // Busca todos os atletas no banco de dados
         List<Atleta> atletas = atletaRepository.findAll();
         List<AtletaListagemResponse> atletasResponse = atletas.stream()
-                .map(atleta -> new AtletaListagemResponse(atleta.getId(), atleta.getNome(), atleta.getSubDivisao().toString()))
+                .map(atleta -> new AtletaListagemResponse(atleta.getId(), atleta.getNome(), atleta.getSubDivisao().toString(), atleta.getPosicao()))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(atletasResponse);
     }

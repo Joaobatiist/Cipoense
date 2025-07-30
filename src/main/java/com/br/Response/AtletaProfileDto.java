@@ -1,5 +1,6 @@
 package com.br.Response;
 
+import com.br.Enums.Posicao;
 import com.br.Enums.SubDivisao;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class AtletaProfileDto {
     private String nome;
     private String email;
     private SubDivisao subDivisao;
+    private Posicao posicao;
     private String dataNascimento;
     private String foto;
     private String contatoResponsavel;

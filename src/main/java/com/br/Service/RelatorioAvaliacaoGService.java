@@ -44,14 +44,13 @@ public class RelatorioAvaliacaoGService {
         relatorioGeral.setAtleta(atleta);
         relatorioGeral.setUserName(request.getUserName());
 
-        // **CORREÇÃO MAIS PROVÁVEL AQUI:**
-        // A entidade RelatorioAvaliacaoGeral espera String para subDivisao,
-        // mas Atleta.getSubDivisao() retorna o ENUM SubDivisao.
+
         if (atleta.getSubDivisao() != null) {
             relatorioGeral.setSubDivisao(atleta.getSubDivisao()); // Convertendo ENUM para String
         } else {
             relatorioGeral.setSubDivisao(null);
         }
+
 
         relatorioGeral.setDataAvaliacao(request.getDataAvaliacao());
         relatorioGeral.setPeriodoTreino(request.getPeriodoTreino());
@@ -112,13 +111,6 @@ public class RelatorioAvaliacaoGService {
         }
         response.setPeriodoTreino(savedRelatorio.getPeriodoTreino());
 
-        // **CORREÇÃO AQUI (se RelatorioAvaliacaoGeral.subDivisao é String e Atleta.subDivisao é enum):**
-        // Se `savedRelatorio.getSubDivisao()` já é String (porque foi salvo como String),
-        // então não precisa de `.name()` aqui. A linha já estava certa na última versão.
-        // O erro indica que `savedRelatorio.getSubDivisao()` ESTÁ RETORNANDO um ENUM.
-        // Isso sugere que o campo `subDivisao` na entidade `RelatorioAvaliacaoGeral` *não* é String, mas sim `SubDivisao` (o enum).
-        // Se for esse o caso, precisamos mudar o tipo do campo na entidade ou converter aqui.
-        // Vou assumir que o campo na entidade *deve* ser `SubDivisao` (o enum) e que queremos a String para o DTO.
         if (savedRelatorio.getSubDivisao() != null) {
             // Se savedRelatorio.getSubDivisao() for um enum, use .name()
             if (savedRelatorio.getSubDivisao() instanceof Enum) { // Verificação para garantir que é um enum

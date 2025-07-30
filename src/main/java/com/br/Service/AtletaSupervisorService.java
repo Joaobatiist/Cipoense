@@ -63,6 +63,7 @@ public class AtletaSupervisorService {
         atleta.setEmail(profileDto.getEmail());
         atleta.setSubDivisao(profileDto.getSubDivisao());
         atleta.setIsAptoParaJogar(profileDto.getIsAptoParaJogar()); // Atualiza aptidão
+        atleta.setPosicao(profileDto.getPosicao());
 
         // Data de Nascimento
         if (profileDto.getDataNascimento() != null && !profileDto.getDataNascimento().trim().isEmpty()) {
@@ -167,6 +168,7 @@ public class AtletaSupervisorService {
         dto.setNome(atleta.getNome());
         dto.setEmail(atleta.getEmail());
         dto.setSubDivisao(atleta.getSubDivisao());
+        dto.setPosicao(atleta.getPosicao());
         dto.setIsAptoParaJogar(atleta.getIsAptoParaJogar());
 
         dto.setDataNascimento(atleta.getDataNascimento() != null ? atleta.getDataNascimento().format(DATE_FORMATTER) : null);

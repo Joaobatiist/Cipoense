@@ -1,5 +1,6 @@
 package com.br.Response;
 
+import com.br.Enums.Posicao;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,4 +16,5 @@ public class AtletaListagemResponse {
         private Long id;
         private String nomeCompleto;
         private String subDivisao;
+        private Posicao posicao;
 }
