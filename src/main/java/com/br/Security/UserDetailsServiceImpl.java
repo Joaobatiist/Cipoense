@@ -8,7 +8,6 @@ import com.br.Repository.AtletaRepository;
 import com.br.Entity.Super;
 import com.br.Entity.Atleta;
 import com.br.Enums.Role;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,7 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.stream.Stream; // Import java.util.stream.Stream
+import java.util.stream.Stream;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -43,7 +42,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        // Use Stream.of to create a stream of Optionals, then flatMap to get the first present one
         Optional<? extends Super> foundSuperUser = Stream.of(
                         supervisorRepository.findByEmail(email),
                         coordenadorRepository.findByEmail(email),
@@ -51,35 +49,42 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 )
                 .flatMap(Optional::stream)
                 .findFirst();
+
         if (foundSuperUser.isPresent()) {
             Super user = foundSuperUser.get();
-            return User.builder()
-                    .username(user.getEmail())
-                    .password(user.getSenha()) // HASHED password from the database
-                    .authorities(getAuthorities(user.getRoles()))
-                    .build();
+            // Retorna CustomUserDetails com as roles sem o prefixo "ROLE_"
+            return new CustomUserDetails(
+                    user.getId(),
+                    user.getEmail(),
+                    user.getSenha(),
+                    getAuthorities(user.getRoles()), // Retorna autoridades como "SUPERVISOR"
+                    user.getRoles().name(),
+                    user.getNome()
+            );
         }
-
 
         Optional<Atleta> foundAtleta = atletaRepository.findByEmail(email);
         if (foundAtleta.isPresent()) {
             Atleta atleta = foundAtleta.get();
-            return User.builder()
-                    .username(atleta.getEmail())
-                    .password(atleta.getSenha()) // HASHED password from the database
-                    .authorities(getAuthorities(atleta.getRoles()))
-                    .build();
+            // Retorna CustomUserDetails com as roles sem o prefixo "ROLE_"
+            return new CustomUserDetails(
+                    atleta.getId(),
+                    atleta.getEmail(),
+                    atleta.getSenha(),
+                    getAuthorities(atleta.getRoles()), // Retorna autoridades como "ATLETA"
+                    atleta.getRoles().name(),
+                    atleta.getNome()
+            );
         }
-
 
         throw new UsernameNotFoundException("Usuário não encontrado com o email: " + email);
     }
-
 
     private Collection<? extends GrantedAuthority> getAuthorities(Role role) {
         if (role == null) {
             return Collections.emptyList();
         }
+        // Cria SimpleGrantedAuthority usando o nome da autoridade sem o prefixo "ROLE_"
         return Collections.singletonList(new SimpleGrantedAuthority(role.getAuthorityName()));
     }
 }

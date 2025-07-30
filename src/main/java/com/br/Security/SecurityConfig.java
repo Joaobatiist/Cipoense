@@ -26,115 +26,104 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Desabilita CSRF para APIs REST (se apropriado para seu caso de uso)
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         // 1. Endpoints públicos (não requerem autenticação)
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        // **Caminhos do Swagger UI (SpringDoc OpenAPI)**
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/webjars/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/atletas/nomes").permitAll() // Exemplo de endpoint público
+                        .requestMatchers(HttpMethod.GET, "/api/atletas/nomes").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/cadastro/funcionarios").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
 
-                        // 2. Endpoints com restrições de ROLE ou autenticação
-                        .requestMatchers(HttpMethod.GET,"/api/atleta/profile/**").hasRole("ATLETA")
-                        .requestMatchers(HttpMethod.POST,"/api/atleta/documents").hasRole("ATLETA")
-                        .requestMatchers(HttpMethod.DELETE,"/api/atleta/documents/{documentId}").hasRole("ATLETA")
+                        // 2. Regras de autorização específicas (mais específicas primeiro)
 
-                                // In your SecurityConfig or similar class
-                                .requestMatchers(HttpMethod.GET,"/api/supervisor/atletas/**").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO") // For GET all and GET by ID
-                                .requestMatchers(HttpMethod.PUT,"/api/supervisor/atletas/**").hasAnyRole("SUPERVISOR", "COORDENADOR") // For UPDATE by ID
-                                .requestMatchers(HttpMethod.DELETE,"/api/supervisor/atletas/{atletaId}/documento-pdf").hasRole("SUPERVISOR")// For DELETE by ID and documents
-                                .requestMatchers(HttpMethod.POST,"/api/supervisor/atletas/{atletaId}/documento-pdf").hasAnyRole("SUPERVISOR", "COORDENADOR") // For PDF upload
-// ... (keep existing ATLETA rules for their own profile)
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/estoque"
-                        ).hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/estoque", // GET all
-                                "/api/estoque/{id}" // GET by ID
-                        ).hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(
-                                HttpMethod.PUT,
-                                "/api/estoque/{id}"
-                        ).hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(
-                                HttpMethod.DELETE,
-                                "/api/estoque/{id}"
-                        ).hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        // Endpoints do ATLETA para seu próprio perfil
+                        .requestMatchers(HttpMethod.GET,"/api/atleta/profile/**").hasAuthority("ATLETA")
+                        .requestMatchers(HttpMethod.POST,"/api/atleta/documents").hasAuthority("ATLETA")
+                        .requestMatchers(HttpMethod.DELETE,"/api/atleta/documents/{documentId}").hasAuthority("ATLETA")
+                        // Endpoints para Análise de Desempenho do Gemini (CRÍTICO: Colocado mais alto)
+                        .requestMatchers(HttpMethod.GET, "/api/analise/meu-desempenho").permitAll()
+
+
+                        // Endpoints do SUPERVISOR/COORDENADOR/TECNICO para atletas (CRUD de documentos, etc.)
+                        .requestMatchers(HttpMethod.GET,"/api/supervisor/atletas/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.PUT,"/api/supervisor/atletas/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+                        .requestMatchers(HttpMethod.DELETE,"/api/supervisor/atletas/{atletaId}/documento-pdf").hasAuthority("SUPERVISOR")
+                        .requestMatchers(HttpMethod.POST,"/api/supervisor/atletas/{atletaId}/documento-pdf").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+
+                        // Endpoints de ESTOQUE
+                        .requestMatchers(HttpMethod.POST, "/api/estoque").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.GET, "/api/estoque", "/api/estoque/{id}").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/estoque/{id}").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/estoque/{id}").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
 
                         // Endpoints de USUÁRIOS PARA COMUNICADO
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios-para-comunicado").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios-para-comunicado").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
 
                         // Endpoints de PRESENÇA
-                        .requestMatchers(HttpMethod.POST, "/api/presenca/registrar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.GET, "/api/presenca/atletas").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.GET, "/api/presenca/presentes").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.GET, "/api/presenca/historico").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.POST, "/api/presenca/registrar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.GET, "/api/presenca/atletas", "/api/presenca/presentes", "/api/presenca/historico").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
 
-                        // Endpoints de COMUNICADOS (Criar, Atualizar, Deletar exigem roles específicas)
-                        .requestMatchers(HttpMethod.POST, "/api/comunicados").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.PUT, "/api/comunicados/{id}").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.DELETE, "/api/comunicados/{id}").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        // Endpoints de COMUNICADOS (Criação/Modificação/Deleção)
+                        .requestMatchers(HttpMethod.POST, "/api/comunicados").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/comunicados/{id}").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/comunicados/{id}").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
 
-                        // Endpoints de CADASTRO
-                        .requestMatchers(HttpMethod.POST, "/api/cadastro").hasAnyRole("SUPERVISOR", "COORDENADOR") // Para cadastrar Alunos/Responsáveis
-                        .requestMatchers(HttpMethod.POST, "/cadastro/funcionarios").permitAll() // Para cadastrar outros funcionários
+                        // Endpoints de CADASTRO de Alunos/Responsáveis
+                        .requestMatchers(HttpMethod.POST, "/api/cadastro").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
 
-                        // Acesso à lista de Alunos (geral)
-                        .requestMatchers(HttpMethod.GET, "/api/atletas").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        // Acesso à lista de Atletas (geral)
+                        .requestMatchers(HttpMethod.GET, "/api/atletas").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.GET, "/api/atletas/listagem").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.GET, "/api/atletas/subdivisoes").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
 
-                        // Endpoints de EVENTOS (Criar, Atualizar, Deletar exigem roles específicas)
-                        .requestMatchers(HttpMethod.POST, "/api/eventos").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.PUT, "/api/eventos/**").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.DELETE, "/api/eventos/**").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        // Endpoints de EVENTOS (Criação/Modificação/Deleção)
+                        .requestMatchers(HttpMethod.POST, "/api/eventos").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/eventos/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/eventos/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        // Permite que qualquer usuário autenticado (incluindo ATLETA) veja seus próprios eventos
+                        .requestMatchers(HttpMethod.GET, "/api/eventos").authenticated()
 
+                        // Endpoints de Relatórios (Geral, Tático, Desempenho) - Criação/Modificação/Deleção
+                        .requestMatchers(HttpMethod.POST, "/api/relatoriogeral/cadastrar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/relatoriogeral/atualizar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/relatoriogeral/deletar").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+                        // Visualização de relatórios gerais para todos os envolvidos
+                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/visualizar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
+                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/buscarporid/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
+
+                        // Endpoints de Relatórios Táticos
+                        .requestMatchers(HttpMethod.POST, "/api/relatorios/tatico").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/relatorios/tatico/atualizar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/relatorios/tatico/deletar").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+                        .requestMatchers(HttpMethod.GET, "/api/relatorios/tatico/visualizar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
+
+                        // Endpoints de Relatórios de Desempenho
+                        .requestMatchers(HttpMethod.POST, "/api/relatorios/desempenho").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/relatorios/desempenho/atualizar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/relatorios/desempenho/deletar").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+                        .requestMatchers(HttpMethod.GET, "/api/relatorios/desempenho/visualizar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
 
                         // Endpoints que exigem APENAS AUTENTICAÇÃO (qualquer usuário logado)
                         .requestMatchers(HttpMethod.GET, "/api/comunicados").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/comunicados/{id}").authenticated()
 
-                        // Endpoints de ROLE ESPECÍFICA
-                        .requestMatchers("/api/supervisor/**").hasRole("SUPERVISOR")
-                        .requestMatchers("/api/coordenador/**").hasRole("COORDENADOR")
-                        .requestMatchers("/api/tecnico/**").hasRole("TECNICO")
-                        .requestMatchers("/api/atleta/**").hasRole("ATLETA") // Se houver endpoints específicos para alunos
+                        // Regras de CATCH-ALL para sub-caminhos (sempre no final das regras específicas)
+                        .requestMatchers("/api/supervisor/**").hasAuthority("SUPERVISOR")
+                        .requestMatchers("/api/coordenador/**").hasAuthority("COORDENADOR")
+                        .requestMatchers("/api/tecnico/**").hasAuthority("TECNICO")
+                        // Removida a linha "/api/atleta/**" para evitar conflitos com regras mais específicas de atleta.
 
-                        // Endpoints de Listagem
-                        .requestMatchers(HttpMethod.GET,"/api/atletas/listagem").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.GET,"/api/atletas/subdivisoes").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-
-                        // Endpoints de Relatórios
-                        .requestMatchers(HttpMethod.POST, "/api/relatoriogeral/cadastrar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.PUT, "/api/relatoriogeral/atualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.DELETE, "/api/relatoriogeral/deletar").hasAnyRole("SUPERVISOR", "COORDENADOR")
-                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/visualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
-
-                        // **** ADICIONE ESTA LINHA ****
-                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/buscarporid/**").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA") // Permitir acesso pelo ID
-
-                        .requestMatchers(HttpMethod.POST, "/api/relatorios/tatico").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.PUT, "/api/relatorios/tatico/atualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.DELETE, "/api/relatorios/tatico/deletar").hasAnyRole("SUPERVISOR", "COORDENADOR")
-                        .requestMatchers(HttpMethod.GET, "/api/relatorios/tatico/visualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
-
-                        .requestMatchers(HttpMethod.POST, "/api/relatorios/desempenho").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.PUT, "/api/relatorios/desempenho/atualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.DELETE, "/api/relatorios/desempenho/deletar").hasAnyRole("SUPERVISOR", "COORDENADOR")
-                        .requestMatchers(HttpMethod.GET, "/api/relatorios/desempenho/visualizar").hasAnyRole("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
-
-                        // Todas as outras requisições (catch-all) requerem autenticação
+                        // Última regra: qualquer outra requisição não mapeada deve ser autenticada.
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Sem estado para JWT
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // Adiciona o filtro JWT ANTES do UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
