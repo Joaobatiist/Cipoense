@@ -1,6 +1,6 @@
 package com.br.Service;
 
-import com.br.Entity.*;
+import com.br.Entity.*; // Assegure-se de que Posicao e SubDivisao (enums) estão importados
 import com.br.Repository.AtletaRepository;
 import com.br.Repository.RelatorioAvaliacaoGeralRepository;
 import com.br.Request.CriarAvaliacaoRequest;
@@ -44,11 +44,18 @@ public class RelatorioAvaliacaoGService {
         relatorioGeral.setAtleta(atleta);
         relatorioGeral.setUserName(request.getUserName());
 
-
+        // Atribuição de SubDivisao (Enum para Enum)
         if (atleta.getSubDivisao() != null) {
-            relatorioGeral.setSubDivisao(atleta.getSubDivisao()); // Convertendo ENUM para String
+            relatorioGeral.setSubDivisao(atleta.getSubDivisao());
         } else {
             relatorioGeral.setSubDivisao(null);
+        }
+
+        // --- ALTERAÇÃO AQUI: Atribuição de Posicao (Enum para Enum) ---
+        if (atleta.getPosicao() != null) {
+            relatorioGeral.setPosicao(atleta.getPosicao());
+        } else {
+            relatorioGeral.setPosicao(null);
         }
 
 
@@ -63,7 +70,6 @@ public class RelatorioAvaliacaoGService {
 
         if (request.getRelatorioDesempenho() != null) {
             RelatorioDesempenho relatorioDesempenho = new RelatorioDesempenho();
-            // ... (população dos campos de RelatorioDesempenho)
             relatorioDesempenho.setControle(request.getRelatorioDesempenho().getControle());
             relatorioDesempenho.setRecepcao(request.getRelatorioDesempenho().getRecepcao());
             relatorioDesempenho.setDribles(request.getRelatorioDesempenho().getDribles());
@@ -82,7 +88,6 @@ public class RelatorioAvaliacaoGService {
 
         if (request.getRelatorioTaticoPsicologico() != null) {
             RelatorioTaticoPsicologico relatorioTaticoPsicologico = new RelatorioTaticoPsicologico();
-            // ... (população dos campos de RelatorioTaticoPsicologico)
             relatorioTaticoPsicologico.setEsportividade(request.getRelatorioTaticoPsicologico().getEsportividade());
             relatorioTaticoPsicologico.setDisciplina(request.getRelatorioTaticoPsicologico().getDisciplina());
             relatorioTaticoPsicologico.setFoco(request.getRelatorioTaticoPsicologico().getFoco());
@@ -104,6 +109,14 @@ public class RelatorioAvaliacaoGService {
         response.setAtletaId(savedRelatorio.getAtleta().getId());
         response.setNomeAtleta(savedRelatorio.getAtleta().getNome());
         response.setUserName(savedRelatorio.getUserName());
+
+        // --- ALTERAÇÃO AQUI: Conversão de ENUM para String para o DTO de Resposta ---
+        if (savedRelatorio.getPosicao() != null) {
+            response.setPosicao(savedRelatorio.getPosicao().name()); // Converte ENUM para String
+        } else {
+            response.setPosicao(null);
+        }
+
         if (savedRelatorio.getDataAvaliacao() != null) {
             response.setDataAvaliacao(savedRelatorio.getDataAvaliacao().format(DATE_FORMATTER));
         } else {
@@ -111,23 +124,19 @@ public class RelatorioAvaliacaoGService {
         }
         response.setPeriodoTreino(savedRelatorio.getPeriodoTreino());
 
+        // --- ALTERAÇÃO AQUI: Conversão de ENUM para String para o DTO de Resposta (para SubDivisao) ---
         if (savedRelatorio.getSubDivisao() != null) {
-            // Se savedRelatorio.getSubDivisao() for um enum, use .name()
-            if (savedRelatorio.getSubDivisao() instanceof Enum) { // Verificação para garantir que é um enum
-                response.setSubDivisao(savedRelatorio.getSubDivisao().name());
-            } else { // Se já for String (o que seria ideal no DTO)
-                response.setSubDivisao(savedRelatorio.getSubDivisao().toString()); // Ou apenas getSubDivisao() se já for String
-            }
+            response.setSubDivisao(savedRelatorio.getSubDivisao().name()); // Converte ENUM para String
         } else {
             response.setSubDivisao(null);
         }
 
         response.setFeedbackTreinador(savedRelatorio.getFeedbackTreinador());
         response.setFeedbackAvaliador(savedRelatorio.getFeedbackAvaliador());
-        response.setPontosFortes(savedRelatorio.getPontosFortes());
-        response.setPontosFracos(savedRelatorio.getPontosFracos());
-        response.setAreasAprimoramento(savedRelatorio.getAreasAprimoramento());
-        response.setMetasObjetivos(savedRelatorio.getMetasObjetivos());
+        response.setPontosFortes(request.getPontosFortes());
+        response.setPontosFracos(request.getPontosFracos());
+        response.setAreasAprimoramento(request.getAreasAprimoramento());
+        response.setMetasObjetivos(request.getMetasObjetivos());
 
         if (savedRelatorio.getRelatorioDesempenho() != null) {
             response.setRelatorioDesempenho(new RelatorioDesempenhoResponse(savedRelatorio.getRelatorioDesempenho()));
@@ -170,17 +179,18 @@ public class RelatorioAvaliacaoGService {
             }
             dto.setPeriodoTreino(avaliacao.getPeriodoTreino());
 
-            // **CORREÇÃO AQUI (se RelatorioAvaliacaoGeral.subDivisao é SubDivisao (enum) e DTO espera String):**
-            // Se `avaliacao.getSubDivisao()` está retornando o ENUM, precisamos do `.name()`.
+            // --- ALTERAÇÃO AQUI: Conversão de ENUM para String para o DTO de Resposta (para SubDivisao) ---
             if (avaliacao.getSubDivisao() != null) {
-                // Verificação para garantir que é um enum antes de chamar .name()
-                if (avaliacao.getSubDivisao() instanceof Enum) {
-                    dto.setSubDivisao(avaliacao.getSubDivisao().name());
-                } else {
-                    dto.setSubDivisao(avaliacao.getSubDivisao().toString()); // Caso seja um objeto SubDivisao complexo, ou já String
-                }
+                dto.setSubDivisao(avaliacao.getSubDivisao().name());
             } else {
                 dto.setSubDivisao(null);
+            }
+
+            // --- ALTERAÇÃO AQUI: Conversão de ENUM para String para o DTO de Resposta (para Posicao) ---
+            if (avaliacao.getPosicao() != null) {
+                dto.setPosicao(avaliacao.getPosicao().name());
+            } else {
+                dto.setPosicao(null);
             }
 
             dto.setFeedbackTreinador(avaliacao.getFeedbackTreinador());
@@ -217,25 +227,20 @@ public class RelatorioAvaliacaoGService {
             relatorioExistente.setAreasAprimoramento(relatorioAvaliacaoGeralAtualizado.getAreasAprimoramento());
             relatorioExistente.setMetasObjetivos(relatorioAvaliacaoGeralAtualizado.getMetasObjetivos());
 
-            // **ATENÇÃO AQUI na atualização:**
-            // Se `relatorioAvaliacaoGeralAtualizado.getSubDivisao()` é uma String
-            // e `relatorioExistente.setSubDivisao()` espera um Enum, você precisaria fazer:
-            // relatorioExistente.setSubDivisao(SubDivisao.valueOf(relatorioAvaliacaoGeralAtualizado.getSubDivisao()));
-            // Mas se ambos são String (como o DTO de request e o campo da entidade RelatorioAvaliacaoGeral),
-            // a atribuição direta é correta.
-            // Pelo erro, a *entidade RelatorioAvaliacaoGeral* parece ter `SubDivisao` como um enum.
-            // Se o request de PUT envia uma String, você precisaria converter:
+            // Lógica para SubDivisao na atualização: Atualiza com o Enum do DTO de atualização.
+            // Se RelatorioAvaliacaoGeralAtualizado tem SubDivisao como Enum, atribuição direta.
             if (relatorioAvaliacaoGeralAtualizado.getSubDivisao() != null) {
-                // Se o campo SubDivisao da *entidade* RelatorioAvaliacaoGeral é um ENUM
-                // e o DTO de atualização (`relatorioAvaliacaoGeralAtualizado`) tem uma String,
-                // você precisaria converter a String para o ENUM:
-                // relatorioExistente.setSubDivisao(SubDivisao.valueOf(relatorioAvaliacaoGeralAtualizado.getSubDivisao()));
-
-                // Se o campo SubDivisao da *entidade* RelatorioAvaliacaoGeral é uma String
-                // e o DTO de atualização (`relatorioAvaliacaoGeralAtualizado`) tem uma String,
-                // então a linha abaixo está correta:
                 relatorioExistente.setSubDivisao(relatorioAvaliacaoGeralAtualizado.getSubDivisao());
+            } else {
+                relatorioExistente.setSubDivisao(null);
             }
+
+            if (relatorioAvaliacaoGeralAtualizado.getPosicao() != null) {
+                relatorioExistente.setPosicao(relatorioAvaliacaoGeralAtualizado.getPosicao());
+            } else {
+                relatorioExistente.setPosicao(null);
+            }
+
 
             if (relatorioAvaliacaoGeralAtualizado.getRelatorioDesempenho() != null) {
                 RelatorioDesempenho novoDesempenho = relatorioAvaliacaoGeralAtualizado.getRelatorioDesempenho();

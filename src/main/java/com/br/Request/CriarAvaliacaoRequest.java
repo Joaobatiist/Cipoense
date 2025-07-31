@@ -29,6 +29,8 @@ public class CriarAvaliacaoRequest {
 
     private String subDivisao;
 
+    private String posicao;
+
     @NotNull(message = "O período de treino é obrigatório.")
     private String periodoTreino;
 

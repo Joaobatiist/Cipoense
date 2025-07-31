@@ -176,7 +176,7 @@ public class GeminiAnalysisService {
         String promptText = String.format(
                 "Você é um treinador de futebol inteligente e experiente. Sua tarefa é analisar o desempenho do atleta %s " +
                         "com base em suas avaliações históricas e na avaliação mais recente. " +
-                        "Não envie os tópicos em negrito"+
+                        "Não envie os tópicos em negrito, evite o uso de asteriscos"+
                         "Forneça uma análise personalizada de acordo com a posiçao do atleta, levando em conta as principais caracteristicas de cada posição, instrutiva e motivacional, focando em:\n" +
                         "1. Pontos Fortes: Destaque 3 a 5 pontos fortes claros com exemplos ou tendências de melhoria ao longo do tempo.\n" +
                         "2. Áreas de Aprimoramento: Identifique 3 a 5 áreas específicas onde o atleta pode melhorar. Seja direto e construtivo.\n" +

@@ -3,6 +3,7 @@ package com.br.Controller;
 import com.br.Entity.Atleta;
 import com.br.Repository.AtletaRepository;
 import com.br.Response.AtletaListagemResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/atletas") // Prefixo para endpoints relacionados a atletas
 public class ListagemAtletasController {
@@ -45,4 +47,16 @@ public class ListagemAtletasController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(subdivisoesDistintas);
     }
+    @GetMapping("/posicoes")
+    @PreAuthorize("hasAnyRole('SUPERVISOR', 'COORDENADOR', 'TECNICO')")
+    public ResponseEntity<List<String>> listarPosicoesDistintas() {
+        List<Atleta> atletas = atletaRepository.findAll();
+        List<String> posicoesDistintas = atletas.stream()
+                .map(atleta -> atleta.getPosicao() != null ? atleta.getPosicao().name() : null)
+                .filter(posicao -> posicao != null && !posicao.isEmpty())
+                .distinct() // Garante que apenas valores únicos sejam retornados
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(posicoesDistintas);
+    }
+
 }

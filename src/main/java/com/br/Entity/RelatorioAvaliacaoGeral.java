@@ -1,5 +1,6 @@
 package com.br.Entity;
 
+import com.br.Enums.Posicao;
 import com.br.Enums.SubDivisao;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
@@ -34,6 +35,9 @@ public class RelatorioAvaliacaoGeral {
 
     @Enumerated(EnumType.STRING)
     private SubDivisao subDivisao;
+
+    @Enumerated(EnumType.STRING)
+    private Posicao posicao;
 
     private String userName;
 

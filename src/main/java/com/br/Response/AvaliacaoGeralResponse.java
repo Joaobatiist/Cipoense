@@ -23,6 +23,7 @@ public class AvaliacaoGeralResponse {
     private String dataAvaliacao; // Formatada como String para o frontend
     private String periodoTreino;
     private String subDivisao;
+    private String posicao;
     private String feedbackTreinador;
     private String feedbackAvaliador;
     private String pontosFortes;
@@ -52,13 +53,8 @@ public class AvaliacaoGeralResponse {
             this.nomeAtleta = "Atleta Desconhecido";
         }
 
-        // Mapeamento de SubDivisao:
-        // Use esta linha se o campo 'subDivisao' na entidade RelatorioAvaliacaoGeral é uma String:
         this.subDivisao = String.valueOf(relatorio.getSubDivisao());
-        // OU, use esta linha se o campo 'subDivisao' na entidade RelatorioAvaliacaoGeral é um ENUM SubDivisao:
-        // this.subDivisao = relatorio.getSubDivisao() != null ? ((SubDivisao) relatorio.getSubDivisao()).name() : null;
-
-
+        this.posicao = String.valueOf(relatorio.getPosicao());
         this.feedbackTreinador = relatorio.getFeedbackTreinador();
         this.feedbackAvaliador = relatorio.getFeedbackAvaliador();
         this.pontosFortes = relatorio.getPontosFortes();
@@ -66,8 +62,6 @@ public class AvaliacaoGeralResponse {
         this.areasAprimoramento = relatorio.getAreasAprimoramento();
         this.metasObjetivos = relatorio.getMetasObjetivos();
 
-        // --- Mapeamento dos Sub-Relatórios para seus respectivos DTOs ---
-        // Cria um novo DTO de sub-relatório APENAS se a entidade do sub-relatório NÃO for nula
         if (relatorio.getRelatorioDesempenho() != null) {
             this.relatorioDesempenho = new RelatorioDesempenhoResponse(relatorio.getRelatorioDesempenho());
         } else {
