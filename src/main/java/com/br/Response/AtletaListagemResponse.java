@@ -17,4 +17,5 @@ public class AtletaListagemResponse {
         private String nomeCompleto;
         private String subDivisao;
         private Posicao posicao;
+        private String email;
 }

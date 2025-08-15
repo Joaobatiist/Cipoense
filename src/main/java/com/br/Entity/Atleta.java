@@ -6,6 +6,7 @@ import com.br.Enums.SubDivisao;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Date; // Importação de java.util.Date
 import java.util.Random;
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -84,16 +85,19 @@ public class Atleta {
     private Set<Comunicado> comunicadosRecebidos = new HashSet<>();
 
     // --- NOVOS CAMPOS PARA PDF NO BANCO ---
-
     @Column(name = "is_apto_para_jogar", nullable = false)
     private Boolean isAptoParaJogar = true;
 
-    @Lob // Indica que é um Large Object (BLOB no banco de dados)
+    @Lob
     @Column(name = "documento_pdf_bytes", columnDefinition = "LONGBLOB", nullable = true)
     private byte[] documentoPdfBytes;
 
     @Column(name = "documento_pdf_content_type", nullable = true)
     private String documentoPdfContentType;
+
+    // --- FIM DOS NOVOS CAMPOS ---
+
+    // --- NOVOS CAMPOS PARA ANALISE IA ---
 
     // --- FIM DOS NOVOS CAMPOS ---
 

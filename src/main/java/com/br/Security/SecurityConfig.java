@@ -37,17 +37,25 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/atletas/nomes").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/cadastro/funcionarios").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
 
                         // 2. Regras de autorização específicas (mais específicas primeiro)
+                        .requestMatchers(HttpMethod.POST, "/cadastro/funcionarios").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+
+                        // --- AJUSTE AQUI: Endpoint de análise de IA do próprio atleta ---
+                        // Apenas o ATLETA pode ver sua própria análise de desempenho
+                        // O endpoint agora é '/api/atleta/minha-analise', como na classe que te passei
+                        .requestMatchers(HttpMethod.GET, "/api/atleta/minha-analise").hasAuthority("ATLETA")
+                        // O endpoint '/api/analise/meu-desempenho' antigo foi removido para evitar conflitos.
+                        // Caso você mantenha o controller antigo, use essa linha:
+                        // .requestMatchers(HttpMethod.GET, "/api/analise/meu-desempenho").hasAuthority("ATLETA")
 
                         // Endpoints do ATLETA para seu próprio perfil
                         .requestMatchers(HttpMethod.GET,"/api/atleta/profile/**").hasAuthority("ATLETA")
                         .requestMatchers(HttpMethod.POST,"/api/atleta/documents").hasAuthority("ATLETA")
                         .requestMatchers(HttpMethod.DELETE,"/api/atleta/documents/{documentId}").hasAuthority("ATLETA")
-                        // Endpoints para Análise de Desempenho do Gemini (CRÍTICO: Colocado mais alto)
-                        .requestMatchers(HttpMethod.GET, "/api/analise/meu-desempenho").permitAll()
 
+                        // Visualização das análises de outros atletas
+                        .requestMatchers(HttpMethod.GET, "/api/analises/atleta/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
 
                         // Endpoints do SUPERVISOR/COORDENADOR/TECNICO para atletas (CRUD de documentos, etc.)
                         .requestMatchers(HttpMethod.GET,"/api/supervisor/atletas/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
@@ -90,11 +98,14 @@ public class SecurityConfig {
 
                         // Endpoints de Relatórios (Geral, Tático, Desempenho) - Criação/Modificação/Deleção
                         .requestMatchers(HttpMethod.POST, "/api/relatoriogeral/cadastrar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.PUT, "/api/relatoriogeral/atualizar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.DELETE, "/api/relatoriogeral/deletar").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/relatoriogeral/{id}").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/relatoriogeral/{id}").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         // Visualização de relatórios gerais para todos os envolvidos
-                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/visualizar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
-                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/buscarporid/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
+                        // ATENÇÃO: Se o atleta puder ver todos, o controle de acesso por ID deve estar no controller/service.
+                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/visualizar/{id}").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
+                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/buscarporid/{id}").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
+                        // Permite listar todos os relatórios (geralmente para a comissão técnica)
+                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/listar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
 
                         // Endpoints de Relatórios Táticos
                         .requestMatchers(HttpMethod.POST, "/api/relatorios/tatico").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
@@ -116,7 +127,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/supervisor/**").hasAuthority("SUPERVISOR")
                         .requestMatchers("/api/coordenador/**").hasAuthority("COORDENADOR")
                         .requestMatchers("/api/tecnico/**").hasAuthority("TECNICO")
-                        // Removida a linha "/api/atleta/**" para evitar conflitos com regras mais específicas de atleta.
+
+                        // Acesso a endpoints do atleta em geral
+                        // Esta regra é mais ampla, então a movi para o final do bloco
+                        // das regras do atleta.
+                        .requestMatchers("/api/atleta/**").hasAuthority("ATLETA")
 
                         // Última regra: qualquer outra requisição não mapeada deve ser autenticada.
                         .anyRequest().authenticated()

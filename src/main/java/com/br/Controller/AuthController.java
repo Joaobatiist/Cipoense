@@ -54,19 +54,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> authenticateUser(@RequestBody AuthRequest authRequest) {
         try {
-            // 1. Autentica o usuário usando as credenciais fornecidas
+
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getSenha()));
 
-            // 2. Carrega os detalhes completos do usuário (já feito pelo UserDetailsServiceImpl)
+
             UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getEmail());
 
-            // 3. Inicializa variáveis para os dados do token
+
             Long userId = null;
             String userType = null;
-            String entityName = null; // ⭐ NOVO: Variável para armazenar o nome da entidade
+            String entityName = null;
 
-            // 4. Busca o usuário nos diferentes repositórios para obter ID, Tipo e NOME
+
             Optional<? extends Super> foundSuperUser = Stream.of(
                             supervisorRepository.findByEmail(authRequest.getEmail()).map(s -> {
                                 s.setUserType("SUPERVISOR");
@@ -100,7 +100,7 @@ public class AuthController {
                 }
             }
 
-            // 5. Verifica se os dados essenciais foram encontrados
+
             if (userId == null || userType == null || entityName == null) {
                 throw new IllegalStateException("Dados do usuário (ID, tipo ou nome) não encontrados após autenticação.");
             }

@@ -1,6 +1,6 @@
 package com.br.Service;
 
-import com.br.Entity.*; // Assegure-se de que Posicao e SubDivisao (enums) estão importados
+import com.br.Entity.*;
 import com.br.Repository.AtletaRepository;
 import com.br.Repository.RelatorioAvaliacaoGeralRepository;
 import com.br.Request.CriarAvaliacaoRequest;
@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -22,14 +21,18 @@ public class RelatorioAvaliacaoGService {
 
     private final RelatorioAvaliacaoGeralRepository relatorioAvaliacaoGeralRepository;
     private final AtletaRepository atletaRepository;
+    private final GeminiAnalysisService geminiAnalysisService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     @Autowired
-    public RelatorioAvaliacaoGService(RelatorioAvaliacaoGeralRepository relatorioAvaliacaoGeralRepository,
-                                      AtletaRepository atletaRepository) {
+    public RelatorioAvaliacaoGService(
+            RelatorioAvaliacaoGeralRepository relatorioAvaliacaoGeralRepository,
+            AtletaRepository atletaRepository,
+            GeminiAnalysisService geminiAnalysisService) {
         this.relatorioAvaliacaoGeralRepository = relatorioAvaliacaoGeralRepository;
         this.atletaRepository = atletaRepository;
+        this.geminiAnalysisService = geminiAnalysisService;
     }
 
     @Transactional
@@ -40,25 +43,17 @@ public class RelatorioAvaliacaoGService {
         Atleta atleta = atletaRepository.findById(request.getAtletaId())
                 .orElseThrow(() -> new RuntimeException("Atleta com ID " + request.getAtletaId() + " não encontrado."));
 
+        // Lógica de criação do RelatorioAvaliacaoGeral (sem alterações aqui)
         RelatorioAvaliacaoGeral relatorioGeral = new RelatorioAvaliacaoGeral();
         relatorioGeral.setAtleta(atleta);
         relatorioGeral.setUserName(request.getUserName());
 
-        // Atribuição de SubDivisao (Enum para Enum)
         if (atleta.getSubDivisao() != null) {
             relatorioGeral.setSubDivisao(atleta.getSubDivisao());
-        } else {
-            relatorioGeral.setSubDivisao(null);
         }
-
-        // --- ALTERAÇÃO AQUI: Atribuição de Posicao (Enum para Enum) ---
         if (atleta.getPosicao() != null) {
             relatorioGeral.setPosicao(atleta.getPosicao());
-        } else {
-            relatorioGeral.setPosicao(null);
         }
-
-
         relatorioGeral.setDataAvaliacao(request.getDataAvaliacao());
         relatorioGeral.setPeriodoTreino(request.getPeriodoTreino());
         relatorioGeral.setFeedbackTreinador(request.getFeedbackTreinador());
@@ -104,31 +99,37 @@ public class RelatorioAvaliacaoGService {
 
         RelatorioAvaliacaoGeral savedRelatorio = relatorioAvaliacaoGeralRepository.save(relatorioGeral);
 
+        // --- LÓGICA CORRIGIDA: Geração e salvamento da análise de IA ---
+        List<RelatorioAvaliacaoGeral> allEvaluations = relatorioAvaliacaoGeralRepository.findAllByAtletaIdOrderByDataAvaliacaoAsc(atleta.getId());
+
+        List<GeminiAnalysisService.EvaluationScores> evaluationScoresList = allEvaluations.stream()
+                .map(GeminiAnalysisService.EvaluationScores::new)
+                .collect(Collectors.toList());
+
+        // Chamamos o serviço do Gemini. O salvamento agora ocorre DENTRO dele.
+        geminiAnalysisService.generateComprehensiveAnalysis(
+                atleta.getNome(),
+                evaluationScoresList,
+                atleta.getEmail()
+        ).block(); // O .block() é necessário aqui para aguardar a conclusão da chamada assíncrona.
+
+        // Retorna o DTO de resposta (lógica existente)
         AvaliacaoGeralResponse response = new AvaliacaoGeralResponse();
         response.setId(savedRelatorio.getId());
         response.setAtletaId(savedRelatorio.getAtleta().getId());
         response.setNomeAtleta(savedRelatorio.getAtleta().getNome());
         response.setUserName(savedRelatorio.getUserName());
 
-        // --- ALTERAÇÃO AQUI: Conversão de ENUM para String para o DTO de Resposta ---
         if (savedRelatorio.getPosicao() != null) {
-            response.setPosicao(savedRelatorio.getPosicao().name()); // Converte ENUM para String
-        } else {
-            response.setPosicao(null);
+            response.setPosicao(savedRelatorio.getPosicao().name());
         }
-
         if (savedRelatorio.getDataAvaliacao() != null) {
             response.setDataAvaliacao(savedRelatorio.getDataAvaliacao().format(DATE_FORMATTER));
-        } else {
-            response.setDataAvaliacao(null);
         }
         response.setPeriodoTreino(savedRelatorio.getPeriodoTreino());
 
-        // --- ALTERAÇÃO AQUI: Conversão de ENUM para String para o DTO de Resposta (para SubDivisao) ---
         if (savedRelatorio.getSubDivisao() != null) {
-            response.setSubDivisao(savedRelatorio.getSubDivisao().name()); // Converte ENUM para String
-        } else {
-            response.setSubDivisao(null);
+            response.setSubDivisao(savedRelatorio.getSubDivisao().name());
         }
 
         response.setFeedbackTreinador(savedRelatorio.getFeedbackTreinador());
@@ -144,9 +145,11 @@ public class RelatorioAvaliacaoGService {
         if (savedRelatorio.getRelatorioTaticoPsicologico() != null) {
             response.setRelatorioTaticoPsicologico(new RelatorioTaticoPsicologicoResponse(savedRelatorio.getRelatorioTaticoPsicologico()));
         }
+
         return response;
     }
 
+    // ... (restante dos métodos do serviço, como findById, deleteById, listarRelatorioGeral e atualizarRelatorioGeral) ...
     @Transactional(readOnly = true)
     public Optional<RelatorioAvaliacaoGeral> findById(Long id) {
         return relatorioAvaliacaoGeralRepository.findById(id);
@@ -179,14 +182,12 @@ public class RelatorioAvaliacaoGService {
             }
             dto.setPeriodoTreino(avaliacao.getPeriodoTreino());
 
-            // --- ALTERAÇÃO AQUI: Conversão de ENUM para String para o DTO de Resposta (para SubDivisao) ---
             if (avaliacao.getSubDivisao() != null) {
                 dto.setSubDivisao(avaliacao.getSubDivisao().name());
             } else {
                 dto.setSubDivisao(null);
             }
 
-            // --- ALTERAÇÃO AQUI: Conversão de ENUM para String para o DTO de Resposta (para Posicao) ---
             if (avaliacao.getPosicao() != null) {
                 dto.setPosicao(avaliacao.getPosicao().name());
             } else {
@@ -227,8 +228,6 @@ public class RelatorioAvaliacaoGService {
             relatorioExistente.setAreasAprimoramento(relatorioAvaliacaoGeralAtualizado.getAreasAprimoramento());
             relatorioExistente.setMetasObjetivos(relatorioAvaliacaoGeralAtualizado.getMetasObjetivos());
 
-            // Lógica para SubDivisao na atualização: Atualiza com o Enum do DTO de atualização.
-            // Se RelatorioAvaliacaoGeralAtualizado tem SubDivisao como Enum, atribuição direta.
             if (relatorioAvaliacaoGeralAtualizado.getSubDivisao() != null) {
                 relatorioExistente.setSubDivisao(relatorioAvaliacaoGeralAtualizado.getSubDivisao());
             } else {
@@ -240,7 +239,6 @@ public class RelatorioAvaliacaoGService {
             } else {
                 relatorioExistente.setPosicao(null);
             }
-
 
             if (relatorioAvaliacaoGeralAtualizado.getRelatorioDesempenho() != null) {
                 RelatorioDesempenho novoDesempenho = relatorioAvaliacaoGeralAtualizado.getRelatorioDesempenho();
@@ -286,7 +284,24 @@ public class RelatorioAvaliacaoGService {
                 }
             }
 
-            return relatorioAvaliacaoGeralRepository.save(relatorioExistente);
+            // Salva o relatório atualizado
+            relatorioAvaliacaoGeralRepository.save(relatorioExistente);
+
+            // --- LÓGICA CORRIGIDA: Geração e salvamento da análise de IA após a atualização ---
+            List<RelatorioAvaliacaoGeral> allEvaluations = relatorioAvaliacaoGeralRepository.findAllByAtletaId(relatorioExistente.getAtleta().getId());
+
+            List<GeminiAnalysisService.EvaluationScores> evaluationScoresList = allEvaluations.stream()
+                    .map(GeminiAnalysisService.EvaluationScores::new)
+                    .collect(Collectors.toList());
+
+            // Chamamos o serviço do Gemini. O salvamento agora ocorre DENTRO dele.
+            geminiAnalysisService.generateComprehensiveAnalysis(
+                    relatorioExistente.getAtleta().getNome(),
+                    evaluationScoresList,
+                    relatorioExistente.getAtleta().getEmail()
+            ).block(); // O .block() é necessário aqui para aguardar a conclusão da chamada assíncrona.
+
+            return relatorioExistente;
         } else {
             throw new RuntimeException("Relatório de Avaliação Geral com ID " + id + " não encontrado.");
         }

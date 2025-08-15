@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface RelatorioAvaliacaoGeralRepository extends JpaRepository<RelatorioAvaliacaoGeral, Long> {
     List<RelatorioAvaliacaoGeral> findAllByAtletaIdOrderByDataAvaliacaoAsc(Long atletaId);
+    List<RelatorioAvaliacaoGeral> findAllByAtletaId(Long atletaId);
 }

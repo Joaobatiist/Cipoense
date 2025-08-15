@@ -46,13 +46,15 @@ public class ComunicadoService {
 
     @Transactional(readOnly = true)
     protected Object getLoggedInUserEntity(String username, Set<GrantedAuthority> authorities) {
-        if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + Role.COORDENADOR.name()))) {
+
+
+        if (authorities.stream().anyMatch(a -> a.getAuthority().equals( Role.COORDENADOR.name()))) {
             return coordenadorRepository.findByEmail(username).orElse(null);
-        } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + Role.SUPERVISOR.name()))) {
+        } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals( Role.SUPERVISOR.name()))) {
             return supervisorRepository.findByEmail(username).orElse(null);
-        } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + Role.TECNICO.name()))) {
+        } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals( Role.TECNICO.name()))) {
             return tecnicoRepository.findByEmail(username).orElse(null);
-        } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + Role.ATLETA.name()))) {
+        } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals( Role.ATLETA.name()))) {
             return atletaRepository.findByEmail(username).orElse(null);
         }
         return null;

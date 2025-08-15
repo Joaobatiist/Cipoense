@@ -1,12 +1,16 @@
 package com.br.Service;
 
-import com.br.Entity.RelatorioDesempenho;
+import com.br.Entity.AnaliseIa;
 import com.br.Entity.RelatorioAvaliacaoGeral;
+import com.br.Entity.RelatorioDesempenho;
 import com.br.Entity.RelatorioTaticoPsicologico;
+import com.br.Repository.AnaliseIaRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -16,7 +20,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -25,49 +28,35 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Service
 public class GeminiAnalysisService {
 
     private static final Logger logger = LoggerFactory.getLogger(GeminiAnalysisService.class);
 
-    // Estas variáveis são agora 'final' porque serão inicializadas no construtor
     private final String geminiApiKey;
     private final String geminiApiBaseUrl;
     private final String geminiApiModel;
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
+    private final AnaliseIaRepository analiseIaRepository; // NOVO: Injeção do Repository
 
-    // O CONSTRUTOR CORRIGIDO:
-    // As variáveis com @Value são injetadas diretamente nos parâmetros do construtor.
-    // Isso garante que elas tenham valor ANTES de serem usadas para construir o WebClient.
     public GeminiAnalysisService(WebClient.Builder webClientBuilder,
                                  ObjectMapper objectMapper,
                                  @Value("${gemini.api.key}") String geminiApiKey,
                                  @Value("${gemini.api.baseurl}") String geminiApiBaseUrl,
-                                 @Value("${gemini.api.model}") String geminiApiModel) {
-        // Atribua os valores injetados aos campos da classe
+                                 @Value("${gemini.api.model}") String geminiApiModel,
+                                 AnaliseIaRepository analiseIaRepository) { // NOVO: Injeção por construtor
         this.geminiApiKey = geminiApiKey;
         this.geminiApiBaseUrl = geminiApiBaseUrl;
         this.geminiApiModel = geminiApiModel;
-
-        // Adicione logs para confirmar que os valores foram injetados corretamente
-        logger.info("GeminiAnalysisService: Inicializando com a Base URL: {}", this.geminiApiBaseUrl);
-        logger.info("GeminiAnalysisService: Modelo da API: {}", this.geminiApiModel);
-        // Log parcial da chave para segurança, não exponha a chave completa em logs
-        logger.info("GeminiAnalysisService: Chave da API (parcial): {}...",
-                this.geminiApiKey.substring(0, Math.min(this.geminiApiKey.length(), 5)));
-
-        // Agora, construa o WebClient usando a base URL que JÁ FOI INJETADA
         this.webClient = webClientBuilder.baseUrl(this.geminiApiBaseUrl).build();
         this.objectMapper = objectMapper;
+        this.analiseIaRepository = analiseIaRepository; // NOVO: Atribuição do Repository
     }
 
-    // ⭐ Sua classe EvaluationScores (sem mudanças aqui) - MANTENHA ESTA CLASSE
     public static class EvaluationScores {
+        // ... (conteúdo da classe é o mesmo) ...
         public LocalDate date;
         public Map<String, Integer> performanceScores = new HashMap<>();
         public Map<String, Integer> tacticalPsychologicalScores = new HashMap<>();
@@ -146,8 +135,7 @@ public class GeminiAnalysisService {
         }
     }
 
-    // ⭐ O método principal generateComprehensiveAnalysis (sem mudanças significativas aqui, exceto o log)
-    public Mono<String> generateComprehensiveAnalysis(String atletaName, List<EvaluationScores> evaluations) {
+    public Mono<String> generateComprehensiveAnalysis(String atletaName, List<EvaluationScores> evaluations, String atletaEmail) {
         if (evaluations.isEmpty()) {
             return Mono.just("Não há dados de avaliação para gerar uma análise abrangente para " + atletaName + ".");
         }
@@ -157,11 +145,9 @@ public class GeminiAnalysisService {
                 .orElseThrow(() -> new IllegalStateException("Nenhuma avaliação encontrada na lista."));
 
         StringBuilder historicalData = new StringBuilder();
-        historicalData.append("Histórico de Avaliações:\n");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
         int historyLimit = Math.min(evaluations.size(), 5);
-        List<EvaluationScores> recentHistoricalEvaluations = evaluations.subList(Math.max(0, evaluations.size() - historyLimit), evaluations.size() -1);
+        List<EvaluationScores> recentHistoricalEvaluations = evaluations.subList(Math.max(0, evaluations.size() - historyLimit), evaluations.size());
 
         for (EvaluationScores eval : recentHistoricalEvaluations) {
             historicalData.append("--- Avaliação em ").append(eval.date.format(formatter)).append(" ---\n");
@@ -197,36 +183,34 @@ public class GeminiAnalysisService {
                 latestEvaluation.combinedFeedback.isEmpty() ? "N/A" : latestEvaluation.combinedFeedback
         );
 
-        // Construir o corpo da requisição JSON conforme o formato da API Gemini (Google AI Studio)
+        // A lógica de salvamento será adicionada no método map para processar a resposta
+        // O restante do código de requisição permanece o mesmo
+
         ObjectNode requestBody = objectMapper.createObjectNode();
         ArrayNode contentsArray = requestBody.putArray("contents");
         ObjectNode contentObject = contentsArray.addObject();
         ArrayNode partsArray = contentObject.putArray("parts");
         partsArray.addObject().put("text", promptText);
 
-        // Adicionar parâmetros opcionais como temperatura, maxOutputTokens, etc.
-        // Estes são passados no corpo da requisição para esta API
         ObjectNode generationConfig = requestBody.putObject("generationConfig");
         generationConfig.put("temperature", 0.7);
         generationConfig.put("maxOutputTokens", 800);
         generationConfig.put("topP", 0.9);
         generationConfig.put("topK", 40);
 
-        // Fazer a chamada HTTP POST usando WebClient
         String apiPath = "/models/{modelId}:generateContent";
-        logger.info("GeminiAnalysisService: Chamando Gemini API. Caminho relativo: {} com model: {}", apiPath, geminiApiModel); // Log do caminho e modelo
+        logger.info("GeminiAnalysisService: Chamando Gemini API. Caminho relativo: {} com model: {}", apiPath, geminiApiModel);
 
         return webClient.post()
                 .uri(uriBuilder -> uriBuilder
-                        .path(apiPath) // Caminho relativo, base URL já configurada
-                        .queryParam("key", geminiApiKey) // A chave de API vai como query parameter para esta API
+                        .path(apiPath)
+                        .queryParam("key", geminiApiKey)
                         .build(geminiApiModel))
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(requestBody)) // O corpo da requisição é o JSON que montamos
+                .body(BodyInserters.fromValue(requestBody))
                 .retrieve()
-                .bodyToMono(JsonNode.class) // Espera a resposta JSON completa
+                .bodyToMono(JsonNode.class)
                 .map(responseNode -> {
-                    // Parsear a resposta para extrair o texto gerado
                     JsonNode textNode = responseNode
                             .path("candidates")
                             .path(0)
@@ -234,18 +218,22 @@ public class GeminiAnalysisService {
                             .path("parts")
                             .path(0)
                             .path("text");
-
                     if (textNode.isTextual()) {
-                        return textNode.asText();
+                        String respostaDaIa = textNode.asText();
+
+                        // NOVO: Criar e salvar a entidade AnaliseIa
+                        AnaliseIa novaAnalise = new AnaliseIa(atletaEmail, promptText, respostaDaIa);
+                        analiseIaRepository.save(novaAnalise);
+
+                        return respostaDaIa;
                     } else {
                         logger.error("Estrutura da resposta da IA inesperada. Resposta completa: {}", responseNode.toPrettyString());
-                        return "Resposta da IA em formato inesperado. Verifique logs.";
+                        throw new RuntimeException("Resposta da IA em formato inesperado.");
                     }
                 })
                 .onErrorResume(e -> {
                     logger.error("Erro na chamada à API do Google Gemini (WebClient): {}", e.getMessage(), e);
-                    // Não use System.err.println em produção, prefira o logger.error
-                    return Mono.just("Não foi possível gerar a análise completa (erro de comunicação com a IA).");
+                    return Mono.error(new RuntimeException("Não foi possível gerar a análise completa (erro de comunicação com a IA).", e));
                 });
     }
 

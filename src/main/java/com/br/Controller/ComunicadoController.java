@@ -15,24 +15,28 @@ import java.util.List;
 @RequestMapping("/api/comunicados")
 public class ComunicadoController {
 
-    @Autowired
-    private ComunicadoService comunicadoService;
 
-    @PreAuthorize("hasAnyRole('COORDENADOR', 'SUPERVISOR', 'TECNICO')") // Apenas criadores podem enviar
+    private final ComunicadoService comunicadoService;
+
+    public ComunicadoController(ComunicadoService comunicadoService) {
+        this.comunicadoService = comunicadoService;
+    }
+
+
     @PostMapping
     public ResponseEntity<ComunicadoResponse> criarComunicado(@RequestBody ComunicadoRequest dto) {
         ComunicadoResponse novoComunicado = comunicadoService.criarComunicado(dto);
         return new ResponseEntity<>(novoComunicado, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasAnyRole('ATLETA', 'COORDENADOR', 'SUPERVISOR', 'TECNICO')") // Todos podem listar
+    // Todos podem listar
     @GetMapping
     public ResponseEntity<List<ComunicadoResponse>> getAllComunicados() {
         List<ComunicadoResponse> comunicados = comunicadoService.buscarTodosComunicados();
         return new ResponseEntity<>(comunicados, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('ATLETA', 'COORDENADOR', 'SUPERVISOR', 'TECNICO')") // Todos podem buscar por ID
+
     @GetMapping("/{id}")
     public ResponseEntity<ComunicadoResponse> getComunicadoById(@PathVariable Long id) {
         return comunicadoService.buscarComunicadoPorId(id)
@@ -40,7 +44,7 @@ public class ComunicadoController {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @PreAuthorize("hasAnyRole('COORDENADOR', 'SUPERVISOR', 'TECNICO')") // Apenas criadores podem atualizar (verificado no service)
+
     @PutMapping("/{id}")
     public ResponseEntity<ComunicadoResponse> atualizarComunicado(@PathVariable Long id, @RequestBody ComunicadoRequest dto) {
         try {
@@ -53,8 +57,8 @@ public class ComunicadoController {
         }
     }
 
-    // **NOVO ENDPOINT: Ocultar comunicado da sessão do usuário**
-    @PreAuthorize("hasAnyRole('ATLETA', 'COORDENADOR', 'SUPERVISOR', 'TECNICO')") // Destinatários (e criadores se forem destinatários)
+
+
     @PutMapping("/ocultar/{id}")
     public ResponseEntity<Void> ocultarComunicado(@PathVariable Long id) {
         try {
@@ -68,8 +72,7 @@ public class ComunicadoController {
         }
     }
 
-    // **MÉTODO MODIFICADO: Deletar comunicado PERMANENTEMENTE**
-    // Restringido para remetentes ou ADMIN (validação mais fina no Service)
+
     @PreAuthorize("hasAnyRole('COORDENADOR', 'SUPERVISOR', 'TECNICO')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarComunicadoPermanentemente(@PathVariable Long id) { // Renomeado o método para clareza
