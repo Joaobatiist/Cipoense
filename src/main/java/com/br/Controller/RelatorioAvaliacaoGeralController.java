@@ -60,7 +60,7 @@ public class RelatorioAvaliacaoGeralController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/deletarporid/{id}")
     public ResponseEntity<Void> deletarRelatorioGeral(@PathVariable Long id) {
         relatorioAvaliacaoGService.deleteById(id);
         return ResponseEntity.noContent().build();
