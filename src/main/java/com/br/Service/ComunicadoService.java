@@ -9,10 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections; // Importe este
 import java.util.List;
@@ -66,7 +69,8 @@ public class ComunicadoService {
         dto.setId(comunicado.getId());
         dto.setAssunto(comunicado.getAssunto());
         dto.setMensagem(comunicado.getMensagem());
-        dto.setDataEnvio(comunicado.getData()); // Use DataEnvio para consistência com o frontend
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        dto.setDataEnvio((comunicado.getData().format(formatter))); // Use DataEnvio para consistência com o frontend
 
         List<ComunicadoResponse.DestinatarioDTO> destinatarios = new ArrayList<>();
 
@@ -113,6 +117,7 @@ public class ComunicadoService {
 
     @Transactional
     public ComunicadoResponse criarComunicado(ComunicadoRequest dto) {
+
         Comunicado comunicado = new Comunicado();
         comunicado.setAssunto(dto.getAssunto());
         comunicado.setMensagem(dto.getMensagem());

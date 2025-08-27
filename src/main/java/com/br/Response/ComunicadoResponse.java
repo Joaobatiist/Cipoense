@@ -14,7 +14,7 @@ public class ComunicadoResponse {
     private Long id;
     private String assunto;
     private String mensagem;
-    private LocalDate dataEnvio; // Renomeado para 'dataEnvio' para corresponder ao frontend
+    private String dataEnvio; // Renomeado para 'dataEnvio' para corresponder ao frontend
 
     // Representa um destinatário genérico para o frontend
     @Data
