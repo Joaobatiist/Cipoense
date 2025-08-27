@@ -99,7 +99,7 @@ public class SecurityConfig {
                         // Endpoints de Relatórios (Geral, Tático, Desempenho) - Criação/Modificação/Deleção
                         .requestMatchers(HttpMethod.POST, "/api/relatoriogeral/cadastrar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.PUT, "/api/relatoriogeral/{id}").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.DELETE, "/api/relatoriogeral/{id}").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/relatoriogeral/deletarporid/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         // Visualização de relatórios gerais para todos os envolvidos
                         // ATENÇÃO: Se o atleta puder ver todos, o controle de acesso por ID deve estar no controller/service.
                         .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/visualizar/{id}").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO", "ATLETA")
