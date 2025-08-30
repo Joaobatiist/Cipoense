@@ -89,6 +89,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/atletas/listagem").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.GET, "/api/atletas/subdivisoes").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
 
+                        // Lista de Funcionarios
+                        .requestMatchers(HttpMethod.GET, "/api/funcionarios/listarfuncionarios").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/funcionarios/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/funcionarios/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+
                         // Endpoints de EVENTOS (Criação/Modificação/Deleção)
                         .requestMatchers(HttpMethod.POST, "/api/eventos").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.PUT, "/api/eventos/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")

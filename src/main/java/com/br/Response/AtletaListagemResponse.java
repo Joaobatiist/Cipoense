@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
+
 
 
 public class AtletaListagemResponse {
@@ -18,4 +18,14 @@ public class AtletaListagemResponse {
         private String subDivisao;
         private Posicao posicao;
         private String email;
+
+        public AtletaListagemResponse (Long id, String nomeCompleto,  String subDivisao, Posicao posicao, String email) {
+                this.id = id;
+                this.nomeCompleto = nomeCompleto;
+                this.subDivisao = subDivisao;
+                this.posicao = posicao;
+                this.email = email;
+
+
+        }
 }

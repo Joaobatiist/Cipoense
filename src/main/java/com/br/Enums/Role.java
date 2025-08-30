@@ -7,6 +7,6 @@ public enum Role {
     ATLETA;
 
     public String getAuthorityName() {
-        return  this.name(); // Retorna "ROLE_SUPERVISOR", "ROLE_COORDENADOR", etc.
+        return  this.name();
     }
 }
