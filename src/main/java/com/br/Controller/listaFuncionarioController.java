@@ -2,21 +2,17 @@ package com.br.Controller;
 
 
 
-import com.br.Entity.Coordenador;
-import com.br.Entity.Supervisor;
-import com.br.Entity.Tecnico;
-import com.br.Enums.Role;
+import com.br.Enums.role;
 import com.br.Service.listaFuncionariosService;
 import com.br.Response.funcionarioListagemResponse;
-import com.br.Repository.CoordenadorRepository;
-import com.br.Repository.SupervisorRepository;
-import com.br.Repository.TecnicoRepository;
+import com.br.Repository.coordenadorRepository;
+import com.br.Repository.supervisorRepository;
+import com.br.Repository.tecnicoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,17 +21,17 @@ import java.util.stream.Stream;
 @RequestMapping("/api/funcionarios")
 public class listaFuncionarioController {
 
-    private final TecnicoRepository tecnicoRepository;
-    private final CoordenadorRepository coordenadorRepository;
-    private final SupervisorRepository supervisorRepository;
+    private final tecnicoRepository tecnicoRepository;
+    private final coordenadorRepository coordenadorRepository;
+    private final supervisorRepository supervisorRepository;
 
 
     private final listaFuncionariosService  listaFuncionarios;
 
     @Autowired
-    public listaFuncionarioController(TecnicoRepository tecnicoRepository,
-                                      CoordenadorRepository coordenadorRepository,
-                                      SupervisorRepository supervisorRepository,
+    public listaFuncionarioController(tecnicoRepository tecnicoRepository,
+                                      coordenadorRepository coordenadorRepository,
+                                      supervisorRepository supervisorRepository,
                                       listaFuncionariosService listaFuncionarios) {
         this.tecnicoRepository = tecnicoRepository;
         this.coordenadorRepository = coordenadorRepository;
@@ -82,7 +78,7 @@ public class listaFuncionarioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletarFuncionario(@PathVariable Long id, @RequestParam Role roles) {
+    public ResponseEntity<?> deletarFuncionario(@PathVariable Long id, @RequestParam role roles) {
         try {
             listaFuncionarios.deletarFuncionario(id, roles);
             return ResponseEntity.ok("Funcionário excluído com sucesso!");

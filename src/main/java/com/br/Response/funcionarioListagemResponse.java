@@ -1,12 +1,11 @@
 package com.br.Response;
 
 
-import com.br.Enums.Role;
+import com.br.Enums.role;
 
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Getter
 @Setter
@@ -20,10 +19,10 @@ public class funcionarioListagemResponse {
     private LocalDate dataNascimento;
     private String cpf;
     private String telefone;
-    private Role roles;
+    private role roles;
     private String uniqueId;
 
-    public funcionarioListagemResponse(String uniqueId, Long id, String nome, String cpf, LocalDate dataNascimento, String email, Role roles, String telefone) {
+    public funcionarioListagemResponse(String uniqueId, Long id, String nome, String cpf, LocalDate dataNascimento, String email, role roles, String telefone) {
         this.id = id;
         this.nome = nome;
         this.cpf = cpf;

@@ -1,6 +1,6 @@
 package com.br.Entity;
 
-import com.br.Enums.Role;
+import com.br.Enums.role;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,7 +33,7 @@ public class Super {
     @Column(unique = true)
     private String telefone;
     @Enumerated(EnumType.STRING)
-    private Role roles;
+    private role roles;
     @Transient
     private String userType;
 

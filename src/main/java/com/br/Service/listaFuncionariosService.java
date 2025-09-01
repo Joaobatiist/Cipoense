@@ -1,31 +1,25 @@
 package com.br.Service;
 
-import com.br.Enums.Role;
-import com.br.Entity.Coordenador;
-import com.br.Entity.Supervisor;
-import com.br.Entity.Tecnico;
-import com.br.Repository.CoordenadorRepository;
-import com.br.Repository.SupervisorRepository;
-import com.br.Repository.TecnicoRepository;
+import com.br.Enums.role;
+import com.br.Repository.coordenadorRepository;
+import com.br.Repository.supervisorRepository;
+import com.br.Repository.tecnicoRepository;
 import com.br.Response.funcionarioListagemResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
-import static com.br.Enums.Role.*;
-
 @Service
 public class listaFuncionariosService {
 
-    private final SupervisorRepository supervisorRepository;
-    private final CoordenadorRepository coordenadorRepository;
-    private final TecnicoRepository tecnicoRepository;
+    private final supervisorRepository supervisorRepository;
+    private final coordenadorRepository coordenadorRepository;
+    private final tecnicoRepository tecnicoRepository;
 
     @Autowired
-    public listaFuncionariosService(SupervisorRepository supervisorRepository,
-                                    CoordenadorRepository coordenadorRepository,
-                                    TecnicoRepository tecnicoRepository) {
+    public listaFuncionariosService(supervisorRepository supervisorRepository,
+                                    coordenadorRepository coordenadorRepository,
+                                    tecnicoRepository tecnicoRepository) {
         this.supervisorRepository = supervisorRepository;
         this.coordenadorRepository = coordenadorRepository;
         this.tecnicoRepository = tecnicoRepository;
@@ -69,7 +63,7 @@ public class listaFuncionariosService {
         }
     }
     @Transactional
-    public void deletarFuncionario(Long id, Role role) {
+    public void deletarFuncionario(Long id, role role) {
         switch (role) {
             case SUPERVISOR:
                 supervisorRepository.deleteById(id);
