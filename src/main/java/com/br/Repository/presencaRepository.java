@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface presencaRepository extends JpaRepository <presenca, Long >{
+    void deleteByAtleta(atleta atleta);
+
     Optional<presenca> findByAtletaAndData(atleta atleta, LocalDate data);
     List<presenca> findByData(LocalDate data);
 

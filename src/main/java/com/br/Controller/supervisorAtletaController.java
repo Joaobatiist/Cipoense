@@ -1,6 +1,9 @@
 package com.br.Controller;
 
+import com.br.Entity.atleta;
+import com.br.Repository.presencaRepository;
 import com.br.Response.atletaProfileDto;
+import com.br.Repository.presencaRepository;
 import com.br.Service.atletaSupervisorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +20,10 @@ public class supervisorAtletaController {
     @Autowired
     private atletaSupervisorService atletaSupervisorService;
 
-    // --- Endpoints para Supervisor gerenciar TODOS os atletas ---
+    @Autowired
+    private  presencaRepository presencaRepository;
+
+
 
     @GetMapping
 
@@ -42,10 +48,12 @@ public class supervisorAtletaController {
         return ResponseEntity.ok(updatedProfile);
     }
 
-    @DeleteMapping("/{atletaId}")
+    @DeleteMapping("deletar/{atletaId}")
 
     public ResponseEntity<Void> deleteAtleta(@PathVariable Long atletaId) {
         atletaSupervisorService.deleteAtleta(atletaId);
+
+
         return ResponseEntity.noContent().build();
     }
 

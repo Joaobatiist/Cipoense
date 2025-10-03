@@ -26,37 +26,4 @@ tmp/
 .DS_Store
 Thumbs.db
 
-# Misc
-.env
-.env.*
-*.env
-
-# Node.js (se for React Native)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json # pode ser adicionado se voce usa yarn, mas geralmente nao para npm
-# expo
-.expo/
-web-build/
-dist/
-# Android
-android/build/
-android/.gradle/
-android/app/build/
-android/app/.cxx/
-android/app/src/main/assets/
-android/app/src/main/res/
-android/app/.idea/
-android/gradlew
-android/gradlew.bat
-android/gradle/wrapper/gradle-wrapper.jar
-# iOS
-ios/build/
-ios/*.xcodeproj/project.xcworkspace/
-ios/*.xcodeproj/xcuserdata/
-ios/.xcode.stash/
-ios/Pods/
-ios/.symlinks/
-ios/DerivedData/
+src/main/resources/application.properties

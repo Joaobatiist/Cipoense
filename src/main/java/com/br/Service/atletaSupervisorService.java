@@ -5,6 +5,7 @@ import com.br.Entity.documentoAtleta;
 import com.br.Entity.responsavel;
 import com.br.Repository.atletaRepository;
 import com.br.Repository.documentoAtletaRepository;
+import com.br.Repository.presencaRepository;
 import com.br.Repository.responsavelRepository;
 import com.br.Response.atletaProfileDto;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class atletaSupervisorService {
     private final atletaRepository atletaRepository;
     private final documentoAtletaRepository documentoRepository;
     private final responsavelRepository responsavelRepository;
+    private final presencaRepository presencaRepository;
 
     // O uploadDir não é mais necessário para o PDF principal, mas pode ser para outros documentos
     // private final String uploadDir;
@@ -33,13 +35,14 @@ public class atletaSupervisorService {
     public atletaSupervisorService(
             atletaRepository atletaRepository,
             documentoAtletaRepository documentoRepository,
-            responsavelRepository responsavelRepository
-            // @Value("${file.upload-dir}") String uploadDir // Remover se não for mais usado
+            responsavelRepository responsavelRepository,
+            presencaRepository presencaRepository
+
     ) {
         this.atletaRepository = atletaRepository;
         this.documentoRepository = documentoRepository;
         this.responsavelRepository = responsavelRepository;
-        // this.uploadDir = uploadDir; // Remover se não for mais usado
+       this.presencaRepository = presencaRepository;
     }
 
     // --- CRUD para Atletas pelo Supervisor ---
@@ -102,16 +105,18 @@ public class atletaSupervisorService {
         // Isso depende de como o frontend enviará os dados. Se for um campo separado, use o método uploadDocumentoPdf.
         if (profileDto.getDocumentoPdfBase64() != null && !profileDto.getDocumentoPdfBase64().isEmpty()) {
             try {
-                atleta.setDocumentoPdfBytes(Base64.getDecoder().decode(profileDto.getDocumentoPdfBase64()));
+                String base64Data = profileDto.getDocumentoPdfBase64();
+                // Remove o prefixo do Data URI se presente
+                if (base64Data.contains(",")) {
+                    base64Data = base64Data.split(",")[1];
+                }
+                atleta.setDocumentoPdfBytes(Base64.getDecoder().decode(base64Data));
                 atleta.setDocumentoPdfContentType(profileDto.getDocumentoPdfContentType());
             } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Erro ao decodificar Base64 do PDF.", e);
+                throw new RuntimeException("Erro ao decodificar Base64 do PDF: " + e.getMessage(), e);
             }
-        } else if (profileDto.getDocumentoPdfBase64() == null && atleta.getDocumentoPdfBytes() != null) {
-            // Se o frontend enviar null, e já existir um PDF, significa que foi removido
-            atleta.setDocumentoPdfBytes(null);
-            atleta.setDocumentoPdfContentType(null);
         }
+
 
 
         atleta updatedAtleta = atletaRepository.save(atleta);
@@ -121,6 +126,7 @@ public class atletaSupervisorService {
     public void deleteAtleta(Long atletaId) {
         atleta atleta = findAtletaById(atletaId);
         atletaRepository.delete(atleta);
+        presencaRepository.deleteByAtleta(atleta);
     }
 
     // --- Gerenciamento de Documentos PDF (principal) ---

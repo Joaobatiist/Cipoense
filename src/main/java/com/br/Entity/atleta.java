@@ -6,6 +6,7 @@ import com.br.Enums.subDivisao;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
 import java.util.Random;
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -94,11 +95,9 @@ public class atleta {
     @Column(name = "documento_pdf_content_type", nullable = true)
     private String documentoPdfContentType;
 
-    // --- FIM DOS NOVOS CAMPOS ---
+    @OneToMany(mappedBy = "atleta", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<presenca> presencas;
 
-    // --- NOVOS CAMPOS PARA ANALISE IA ---
-
-    // --- FIM DOS NOVOS CAMPOS ---
 
 
     public int getIdade() {
