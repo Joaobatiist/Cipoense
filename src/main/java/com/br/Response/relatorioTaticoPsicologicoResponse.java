@@ -4,13 +4,15 @@ package com.br.Response;
 import com.br.Entity.relatorioTaticoPsicologico;
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class relatorioTaticoPsicologicoResponse {
-    private Long id;
+    private UUID id;
     private int esportividade;
     private int disciplina;
     private int foco;

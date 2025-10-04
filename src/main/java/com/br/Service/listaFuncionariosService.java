@@ -9,6 +9,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class listaFuncionariosService {
 
@@ -63,7 +65,7 @@ public class listaFuncionariosService {
         }
     }
     @Transactional
-    public void deletarFuncionario(Long id, role role) {
+    public void deletarFuncionario(UUID id, role role) {
         switch (role) {
             case SUPERVISOR:
                 supervisorRepository.deleteById(id);

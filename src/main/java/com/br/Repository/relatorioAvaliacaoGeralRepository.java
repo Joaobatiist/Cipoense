@@ -5,9 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface relatorioAvaliacaoGeralRepository extends JpaRepository<relatorioAvaliacaoGeral, Long> {
-    List<relatorioAvaliacaoGeral> findAllByAtletaIdOrderByDataAvaliacaoAsc(Long atletaId);
-    List<relatorioAvaliacaoGeral> findAllByAtletaId(Long atletaId);
+public interface relatorioAvaliacaoGeralRepository extends JpaRepository<relatorioAvaliacaoGeral, UUID> {
+    List<relatorioAvaliacaoGeral> findAllByAtletaIdOrderByDataAvaliacaoAsc(UUID atletaId);
+    List<relatorioAvaliacaoGeral> findAllByAtletaId(UUID atletaId);
 }

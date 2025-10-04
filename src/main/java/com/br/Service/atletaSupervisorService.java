@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Base64;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,9 +28,6 @@ public class atletaSupervisorService {
     private final responsavelRepository responsavelRepository;
     private final presencaRepository presencaRepository;
 
-    // O uploadDir não é mais necessário para o PDF principal, mas pode ser para outros documentos
-    // private final String uploadDir;
-
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public atletaSupervisorService(
@@ -37,12 +35,11 @@ public class atletaSupervisorService {
             documentoAtletaRepository documentoRepository,
             responsavelRepository responsavelRepository,
             presencaRepository presencaRepository
-
     ) {
         this.atletaRepository = atletaRepository;
         this.documentoRepository = documentoRepository;
         this.responsavelRepository = responsavelRepository;
-       this.presencaRepository = presencaRepository;
+        this.presencaRepository = presencaRepository;
     }
 
     // --- CRUD para Atletas pelo Supervisor ---
@@ -53,12 +50,12 @@ public class atletaSupervisorService {
                 .collect(Collectors.toList());
     }
 
-    public atletaProfileDto getAtletaProfile(Long atletaId) {
+    public atletaProfileDto getAtletaProfile(UUID atletaId) {
         atleta atleta = findAtletaById(atletaId);
         return convertToDto(atleta);
     }
 
-    public atletaProfileDto updateAtleta(Long atletaId, atletaProfileDto profileDto) {
+    public atletaProfileDto updateAtleta(UUID atletaId, atletaProfileDto profileDto) {
         atleta atleta = findAtletaById(atletaId);
 
         // Atualiza campos com base no DTO
@@ -101,8 +98,7 @@ public class atletaSupervisorService {
             }
         }
 
-        // Se o PDF for enviado junto com a atualização do perfil (opcional, mas possível)
-        // Isso depende de como o frontend enviará os dados. Se for um campo separado, use o método uploadDocumentoPdf.
+        // CORREÇÃO: Se o PDF for enviado junto com a atualização do perfil (opcional, mas possível)
         if (profileDto.getDocumentoPdfBase64() != null && !profileDto.getDocumentoPdfBase64().isEmpty()) {
             try {
                 String base64Data = profileDto.getDocumentoPdfBase64();
@@ -110,20 +106,19 @@ public class atletaSupervisorService {
                 if (base64Data.contains(",")) {
                     base64Data = base64Data.split(",")[1];
                 }
-                atleta.setDocumentoPdfBytes(Base64.getDecoder().decode(base64Data));
+                // ALTERAÇÃO: Como documentoPdfBytes agora é String, salvamos o base64 diretamente
+                atleta.setDocumentoPdfBytes(base64Data);
                 atleta.setDocumentoPdfContentType(profileDto.getDocumentoPdfContentType());
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Erro ao decodificar Base64 do PDF: " + e.getMessage(), e);
+            } catch (Exception e) {
+                throw new RuntimeException("Erro ao processar Base64 do PDF: " + e.getMessage(), e);
             }
         }
-
-
 
         atleta updatedAtleta = atletaRepository.save(atleta);
         return convertToDto(updatedAtleta);
     }
 
-    public void deleteAtleta(Long atletaId) {
+    public void deleteAtleta(UUID atletaId) {
         atleta atleta = findAtletaById(atletaId);
         atletaRepository.delete(atleta);
         presencaRepository.deleteByAtleta(atleta);
@@ -131,42 +126,40 @@ public class atletaSupervisorService {
 
     // --- Gerenciamento de Documentos PDF (principal) ---
 
-    // Este método agora recebe um MultipartFile e salva seus bytes no DB
-    public String uploadDocumentoPdf(Long atletaId, MultipartFile file) {
+    // CORREÇÃO: Este método agora recebe um MultipartFile e salva como String Base64 no DB
+    public String uploadDocumentoPdf(UUID atletaId, MultipartFile file) {
         atleta atleta = findAtletaById(atletaId);
 
         try {
-            atleta.setDocumentoPdfBytes(file.getBytes());
+            byte[] bytes = file.getBytes();
+            String base64String = Base64.getEncoder().encodeToString(bytes);
+
+            // ALTERAÇÃO: Como documentoPdfBytes agora é String, salvamos o base64 diretamente
+            atleta.setDocumentoPdfBytes(base64String);
             atleta.setDocumentoPdfContentType(file.getContentType());
             atletaRepository.save(atleta);
+
             // Retorna a URL base64 para o frontend exibir
-            return "data:" + file.getContentType() + ";base64," + Base64.getEncoder().encodeToString(file.getBytes());
+            return "data:" + file.getContentType() + ";base64," + base64String;
         } catch (IOException e) {
             throw new RuntimeException("Falha ao salvar o documento PDF no banco de dados", e);
         }
     }
 
     // Método para remover o PDF principal
-    public void deleteMainPdf(Long atletaId) {
+    public void deleteMainPdf(UUID atletaId) {
         atleta atleta = findAtletaById(atletaId);
         atleta.setDocumentoPdfBytes(null);
         atleta.setDocumentoPdfContentType(null);
         atletaRepository.save(atleta);
     }
 
-    // Se ainda precisar de upload/delete para outros documentos (DocumentoAtleta),
-    // mantenha os métodos `uploadDocuments` e `deleteAtletaDocument` e suas dependências com `uploadDir`.
-    // Por exemplo, `saveDocument` precisaria do `uploadDir`.
-    // Se o PDF principal for o único documento, remova a classe `DocumentoAtleta` e todos os métodos relacionados a ela.
-
-    // --- Métodos Auxiliares ---
-
-    private atleta findAtletaById(Long atletaId) {
+    private atleta findAtletaById(UUID atletaId) {
         return atletaRepository.findById(atletaId)
                 .orElseThrow(() -> new RuntimeException("Atleta não encontrado com o ID: " + atletaId));
     }
 
-    // Converte Entidade Atleta para DTO AtletaProfileDto
+    // CORREÇÃO: Converte Entidade Atleta para DTO AtletaProfileDto
     private atletaProfileDto convertToDto(atleta atleta) {
         atletaProfileDto dto = new atletaProfileDto();
         dto.setId(atleta.getId());
@@ -179,9 +172,9 @@ public class atletaSupervisorService {
 
         dto.setDataNascimento(atleta.getDataNascimento() != null ? atleta.getDataNascimento().format(DATE_FORMATTER) : null);
 
-        // Foto (Base64)
-        if (atleta.getFoto() != null && atleta.getFoto().length > 0 && atleta.getFotoContentType() != null) {
-            dto.setFoto("data:" + atleta.getFotoContentType() + ";base64," + Base64.getEncoder().encodeToString(atleta.getFoto()));
+        // CORREÇÃO: Foto agora é String (Base64)
+        if (atleta.getFoto() != null && !atleta.getFoto().isEmpty() && atleta.getFotoContentType() != null) {
+            dto.setFoto("data:" + atleta.getFotoContentType() + ";base64," + atleta.getFoto());
         } else {
             dto.setFoto(null);
         }
@@ -193,15 +186,14 @@ public class atletaSupervisorService {
             dto.setContatoResponsavel(null);
         }
 
-        // --- CONVERTE BYTES DO PDF PARA BASE64 PARA O FRONTEND ---
-        if (atleta.getDocumentoPdfBytes() != null && atleta.getDocumentoPdfBytes().length > 0 && atleta.getDocumentoPdfContentType() != null) {
-            dto.setDocumentoPdfBase64(Base64.getEncoder().encodeToString(atleta.getDocumentoPdfBytes()));
+        // CORREÇÃO: PDF agora é String (Base64)
+        if (atleta.getDocumentoPdfBytes() != null && !atleta.getDocumentoPdfBytes().isEmpty() && atleta.getDocumentoPdfContentType() != null) {
+            dto.setDocumentoPdfBase64(atleta.getDocumentoPdfBytes());
             dto.setDocumentoPdfContentType(atleta.getDocumentoPdfContentType());
         } else {
             dto.setDocumentoPdfBase64(null);
             dto.setDocumentoPdfContentType(null);
         }
-        // --- FIM DA CONVERSÃO DE BYTES DO PDF ---
 
         // Lista de outros documentos (se você ainda usa a entidade DocumentoAtleta)
         if (atleta.getDocumentos() != null && !atleta.getDocumentos().isEmpty()) {

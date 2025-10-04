@@ -6,21 +6,18 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface comunicadoStatusRepository extends JpaRepository<comunicadoStatus, Long> {
+public interface comunicadoStatusRepository extends JpaRepository<comunicadoStatus, UUID> {
 
     // Para encontrar o status de um comunicado específico para um aluno
-    Optional<comunicadoStatus> findByComunicadoAndAtletaId(comunicado comunicado, Long atletaId);
+    Optional<comunicadoStatus> findByComunicadoAndAtletaId(comunicado comunicado, UUID atletaId);
     // Para encontrar o status de um comunicado específico para um coordenador
-    Optional<comunicadoStatus> findByComunicadoAndCoordenadorId(comunicado comunicado, Long coordenadorId);
+    Optional<comunicadoStatus> findByComunicadoAndCoordenadorId(comunicado comunicado, UUID coordenadorId);
 
-    Optional<comunicadoStatus> findByComunicadoAndSupervisorId(comunicado comunicado, Long supervisorId);
-    Optional<comunicadoStatus> findByComunicadoAndTecnicoId(comunicado comunicado, Long tecnicoId);
-
-
-    Optional<comunicadoStatus> findByComunicadoIdAndAtletaIdOrComunicadoIdAndCoordenadorIdOrComunicadoIdAndSupervisorIdOrComunicadoIdAndTecnicoId(
-            Long comunicadoId, Long atletaId, Long comunicadoId2, Long coordenadorId, Long comunicadoId3, Long supervisorId, Long comunicadoId4, Long tecnicoId);
+    Optional<comunicadoStatus> findByComunicadoAndSupervisorId(comunicado comunicado, UUID supervisorId);
+    Optional<comunicadoStatus> findByComunicadoAndTecnicoId(comunicado comunicado, UUID tecnicoId);
 
 
     // Para deletar todos os status associados a um comunicado quando ele é deletado permanentemente

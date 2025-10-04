@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -15,8 +16,8 @@ import java.time.format.DateTimeFormatter;
 // O construtor personalizado que aceita RelatorioAvaliacaoGeral é manual.
 public class avaliacaoGeralResponse {
 
-    private Long id;
-    private Long atletaId;
+    private UUID id;
+    private UUID atletaId;
     private String nomeAtleta;
     private String userName;
     private String dataAvaliacao; // Formatada como String para o frontend

@@ -19,6 +19,7 @@ import org.springframework.security.core.AuthenticationException; // Importar pa
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 @RestController
@@ -62,7 +63,7 @@ public class authController {
             UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getEmail());
 
 
-            Long userId = null;
+            UUID userId = null;
             String userType = null;
             String entityName = null;
 

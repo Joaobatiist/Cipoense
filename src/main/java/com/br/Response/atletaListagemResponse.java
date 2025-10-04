@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -12,14 +14,14 @@ import lombok.Setter;
 
 
 public class atletaListagemResponse {
-        private Long id;
+        private UUID id;
         private String nomeCompleto;
         private String subDivisao;
         private posicao posicao;
         private String email;
         private String foto;
 
-        public atletaListagemResponse(Long id, String nomeCompleto, String subDivisao, posicao posicao, String email) {
+        public atletaListagemResponse(UUID id, String nomeCompleto, String subDivisao, posicao posicao, String email) {
                 this.id = id;
                 this.nomeCompleto = nomeCompleto;
                 this.subDivisao = subDivisao;

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -44,7 +45,7 @@ public class eventosCrontroller {
     }
 
     @GetMapping("/eventos/{id}")
-    public ResponseEntity<eventos> buscarEventoPorId(@PathVariable Long id) {
+    public ResponseEntity<eventos> buscarEventoPorId(@PathVariable UUID id) {
         try {
             Optional<eventos> evento = eventosService.buscarEventoPorId(id);
             return evento.map(ResponseEntity::ok)
@@ -57,7 +58,7 @@ public class eventosCrontroller {
     }
 
     @PutMapping("/eventos/{id}")
-    public ResponseEntity<eventos> atualizarEvento(@PathVariable Long id, @RequestBody eventos eventos) {
+    public ResponseEntity<eventos> atualizarEvento(@PathVariable UUID id, @RequestBody eventos eventos) {
         try {
             eventos eventoAtualizado = eventosService.atualizarEvento(id, eventos);
             return ResponseEntity.ok(eventoAtualizado);
@@ -71,7 +72,7 @@ public class eventosCrontroller {
     }
 
     @DeleteMapping("/eventos/{id}")
-    public ResponseEntity<Void> deletarEvento(@PathVariable Long id) {
+    public ResponseEntity<Void> deletarEvento(@PathVariable UUID id) {
         try {
             eventosService.deletarEvento(id);
             return ResponseEntity.noContent().build(); // Return 204 No Content for successful deletion

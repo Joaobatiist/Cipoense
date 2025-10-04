@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List; // Add import for List
 import java.util.Optional; // Add import for Optional
+import java.util.UUID;
 
 @Service
 public class eventosService {
@@ -27,7 +28,7 @@ public class eventosService {
     }
 
     @Transactional
-    public eventos atualizarEvento(Long id, eventos eventoAtualizado) {
+    public eventos atualizarEvento(UUID id, eventos eventoAtualizado) {
 
         Optional<eventos> existingEventOptional = eventosRepository.findById(id);
 
@@ -47,14 +48,14 @@ public class eventosService {
     }
 
     @Transactional
-    public void deletarEvento(Long id) {
+    public void deletarEvento(UUID id) {
         if (!eventosRepository.existsById(id)) {
             throw new RuntimeException("Evento não encontrado com o ID: " + id);
         }
         eventosRepository.deleteById(id);
     }
 
-    public Optional<eventos> buscarEventoPorId(Long id) {
+    public Optional<eventos> buscarEventoPorId(UUID id) {
         return eventosRepository.findById(id);
     }
 }

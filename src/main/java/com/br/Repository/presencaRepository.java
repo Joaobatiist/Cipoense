@@ -7,8 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface presencaRepository extends JpaRepository <presenca, Long >{
+public interface presencaRepository extends JpaRepository <presenca, UUID>{
     void deleteByAtleta(atleta atleta);
 
     Optional<presenca> findByAtletaAndData(atleta atleta, LocalDate data);

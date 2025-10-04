@@ -8,21 +8,21 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import org.slf4j.Logger; // ⭐ ADICIONAR ESTE IMPORT
-import org.slf4j.LoggerFactory; // ⭐ ADICIONAR ESTE IMPORT
 
 @Component
 public class jwtUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(jwtUtil.class); // ⭐ ADICIONAR LOG
+    private static final Logger logger = LoggerFactory.getLogger(jwtUtil.class);
 
     @Value("${jwt.secret}")
     private String secret;
@@ -30,10 +30,11 @@ public class jwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    public String generateToken(UserDetails userDetails, Long userId, String userType, String userName) {
-        logger.debug("JwtUtil: Gerando token com userId={}, userType={}, userName={}", userId, userType, userName); // ⭐ LOG
+    public String generateToken(UserDetails userDetails, UUID userId, String userType, String userName) {
+        logger.debug("JwtUtil: Gerando token com userId={}, userType={}, userName={}", userId, userType, userName);
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
+        // Armazena o UUID como String no token
+        claims.put("userId", userId.toString());
         claims.put("userType", userType);
         claims.put("userName", userName);
         claims.put("roles", userDetails.getAuthorities().stream()
@@ -43,7 +44,7 @@ public class jwtUtil {
     }
 
     public String generateToken(UserDetails userDetails) {
-        logger.debug("JwtUtil: Gerando token (versão sem userId, userType, userName)"); // ⭐ LOG
+        logger.debug("JwtUtil: Gerando token (versão sem userId, userType, userName)");
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", userDetails.getAuthorities().stream()
                 .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
@@ -52,7 +53,7 @@ public class jwtUtil {
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
-        logger.debug("JwtUtil: Criando token para subject: {}", subject); // ⭐ LOG
+        logger.debug("JwtUtil: Criando token para subject: {}", subject);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
@@ -64,41 +65,52 @@ public class jwtUtil {
 
     private Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
-        logger.debug("JwtUtil: Obtendo chave de assinatura. Tamanho da chave: {} bytes", keyBytes.length); // ⭐ LOG
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         boolean isValid = (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-        logger.debug("JwtUtil: Validação do token para '{}': {}. Token expirado? {}", username, isValid, isTokenExpired(token)); // ⭐ LOG
+        logger.debug("JwtUtil: Validação do token para '{}': {}. Token expirado? {}", username, isValid, isTokenExpired(token));
         return isValid;
     }
 
     public String extractUsername(String token) {
-        logger.debug("JwtUtil: Extraindo username (subject) do token..."); // ⭐ LOG
         return extractClaim(token, Claims::getSubject);
     }
 
     public Date extractExpiration(String token) {
-        logger.debug("JwtUtil: Extraindo data de expiração do token..."); // ⭐ LOG
         return extractClaim(token, Claims::getExpiration);
     }
 
-    public Long extractUserId(String token) {
-        logger.debug("JwtUtil: Extraindo userId do token..."); // ⭐ LOG
+
+    public UUID extractUserId(String token) {
+        logger.debug("JwtUtil: Extraindo userId do token...");
         Claims claims = extractAllClaims(token);
-        return claims.get("userId", Long.class);
+
+
+        String userIdAsString = claims.get("userId", String.class);
+
+
+        if (userIdAsString != null) {
+            try {
+                return UUID.fromString(userIdAsString);
+            } catch (IllegalArgumentException e) {
+                logger.error("JwtUtil: ERRO - O 'userId' no token não é um UUID válido: {}", userIdAsString, e);
+                return null;
+            }
+        }
+
+        return null;
     }
 
+
     public String extractUserType(String token) {
-        logger.debug("JwtUtil: Extraindo userType do token..."); // ⭐ LOG
         Claims claims = extractAllClaims(token);
         return claims.get("userType", String.class);
     }
 
     public String extractEntityName(String token) {
-        logger.debug("JwtUtil: Extraindo entityName ('userName') do token..."); // ⭐ LOG
         Claims claims = extractAllClaims(token);
         return claims.get("userName", String.class);
     }
@@ -109,32 +121,20 @@ public class jwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        logger.debug("JwtUtil: Extraindo todos os claims do token..."); // ⭐ LOG
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(getSignKey())
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-        } catch (io.jsonwebtoken.ExpiredJwtException e) {
-            logger.error("JwtUtil: ERRO - Token JWT expirado: {}", e.getMessage()); // ⭐ LOG
-            throw e;
-        } catch (io.jsonwebtoken.MalformedJwtException e) {
-            logger.error("JwtUtil: ERRO - Token JWT malformado: {}", e.getMessage()); // ⭐ LOG
-            throw e;
-        } catch (io.jsonwebtoken.SignatureException e) {
-            logger.error("JwtUtil: ERRO - Erro de assinatura do token JWT. Verifique a chave secreta no application.properties: {}", e.getMessage()); // ⭐ LOG
-            throw e;
         } catch (Exception e) {
-            logger.error("JwtUtil: ERRO - Erro inesperado ao parsear claims do token: {}", e.getMessage(), e); // ⭐ LOG
-            throw new RuntimeException("Erro ao parsear claims do token", e);
+            logger.error("JwtUtil: ERRO ao parsear claims do token: {}", e.getMessage());
+            // Lançar uma exceção mais específica pode ser útil
+            throw new RuntimeException("Token inválido ou expirado", e);
         }
     }
 
     private Boolean isTokenExpired(String token) {
-        Date expirationDate = extractExpiration(token);
-        boolean expired = expirationDate.before(new Date());
-        logger.debug("JwtUtil: Verificando expiração. Data de Expiração: {}. Data Atual: {}. Expirado: {}", expirationDate, new Date(), expired); // ⭐ LOG
-        return expired;
+        return extractExpiration(token).before(new Date());
     }
 }

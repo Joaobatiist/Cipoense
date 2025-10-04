@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,7 +60,7 @@ public class listaFuncionarioController {
         return ResponseEntity.ok(todosFuncionarios);
     }
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizarFuncionario(@PathVariable Long id, @RequestBody funcionarioListagemResponse dto) {
+    public ResponseEntity<?> atualizarFuncionario(@PathVariable UUID id, @RequestBody funcionarioListagemResponse dto) {
         try {
 
             dto.setId(id);
@@ -78,7 +79,7 @@ public class listaFuncionarioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletarFuncionario(@PathVariable Long id, @RequestParam role roles) {
+    public ResponseEntity<?> deletarFuncionario(@PathVariable UUID id, @RequestParam role roles) {
         try {
             listaFuncionarios.deletarFuncionario(id, roles);
             return ResponseEntity.ok("Funcionário excluído com sucesso!");

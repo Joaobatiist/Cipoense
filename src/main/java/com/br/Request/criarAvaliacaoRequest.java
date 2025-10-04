@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.UUID;
+
 import jakarta.validation.Valid; // Importação para @Valid
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -18,7 +20,7 @@ public class criarAvaliacaoRequest {
 
     // Alterado de List<Long> para Long, pois um relatório geral é para um único atleta
     @NotNull(message = "O ID do atleta é obrigatório.")
-    private Long atletaId;
+    private UUID atletaId;
 
     private String userName;
 

@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin("http://192.168.0.10:8081")
 public class cadastroController {
 
     private final cadastroService cadastroService;

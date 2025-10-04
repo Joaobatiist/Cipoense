@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/relatorios/tatico")
@@ -43,7 +44,7 @@ public class relatorioTaticoController {
 
     @DeleteMapping("/deletar")
 
-    public ResponseEntity<Void> deleterelatorioTatico(@PathVariable Long id) {
+    public ResponseEntity<Void> deleterelatorioTatico(@PathVariable UUID id) {
         try {
             relatorioTaticoService.deleteByIdTatico(id);
             return ResponseEntity.noContent().build();
@@ -54,7 +55,7 @@ public class relatorioTaticoController {
 
     @PutMapping("/atualizar")
 
-    public ResponseEntity<relatorioTaticoPsicologico>atualizarrelatorioTatico(@PathVariable Long id, @RequestBody relatorioTaticoPsicologico relatorioTatico) {
+    public ResponseEntity<relatorioTaticoPsicologico>atualizarrelatorioTatico(@PathVariable UUID id, @RequestBody relatorioTaticoPsicologico relatorioTatico) {
         try {
             relatorioTaticoPsicologico relatorioTaticoAtualizado = relatorioTaticoService.atualizarRelatorioTatico(id, relatorioTatico);
             return ResponseEntity.ok(relatorioTaticoAtualizado);

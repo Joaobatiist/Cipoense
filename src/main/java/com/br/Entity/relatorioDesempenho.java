@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties; // Importar
 import com.fasterxml.jackson.annotation.JsonBackReference; // Importar
+import org.hibernate.annotations.UuidGenerator;
+
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -17,8 +20,9 @@ import com.fasterxml.jackson.annotation.JsonBackReference; // Importar
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Adicionado aqui
 public class relatorioDesempenho {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    @GeneratedValue
+    private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "relatorio_avaliacao_geral_id", unique = true, nullable = false)

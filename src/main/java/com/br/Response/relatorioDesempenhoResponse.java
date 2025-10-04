@@ -4,13 +4,15 @@ package com.br.Response;
 import com.br.Entity.relatorioDesempenho;
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class relatorioDesempenhoResponse {
-    private Long id;
+    private UUID id;
     private int controle;
     private int recepcao;
     private int dribles;

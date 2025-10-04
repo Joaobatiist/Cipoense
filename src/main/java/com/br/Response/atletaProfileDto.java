@@ -8,13 +8,14 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
 public class atletaProfileDto {
-    private Long id;
+    private UUID id;
     private Integer matricula;
     private String nome;
     private String email;
@@ -36,7 +37,7 @@ public class atletaProfileDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentoDto {
-        private Long id;
+        private UUID id;
         private String nome;
         private String url; // Esta URL ainda pode ser usada para outros documentos que não sejam o PDF principal
         private String tipo;

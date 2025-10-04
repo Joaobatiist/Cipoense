@@ -5,12 +5,13 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class comunicadoResponse {
-    private Long id;
+    private UUID id;
     private String assunto;
     private String mensagem;
     private String dataEnvio; // Renomeado para 'dataEnvio' para corresponder ao frontend
@@ -20,7 +21,7 @@ public class comunicadoResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DestinatarioDTO {
-        private Long id;
+        private UUID id;
         private String nome;
         private String tipo;
     }

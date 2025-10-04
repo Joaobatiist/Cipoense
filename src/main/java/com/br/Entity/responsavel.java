@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
+
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -15,8 +18,9 @@ import lombok.Setter;
 @Table(name="reponsavel")
 public class responsavel {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long Id;
+    @UuidGenerator
+    @GeneratedValue
+    private UUID Id;
     private String nome;
     @Column(unique = true)
     private String telefone;
