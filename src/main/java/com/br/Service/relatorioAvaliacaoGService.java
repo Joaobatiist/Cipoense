@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -151,12 +152,12 @@ public class relatorioAvaliacaoGService {
 
     // ... (restante dos métodos do serviço, como findById, deleteById, listarRelatorioGeral e atualizarRelatorioGeral) ...
     @Transactional(readOnly = true)
-    public Optional<relatorioAvaliacaoGeral> findById(Long id) {
+    public Optional<relatorioAvaliacaoGeral> findById(UUID id) {
         return relatorioAvaliacaoGeralRepository.findById(id);
     }
 
     @Transactional
-    public void deleteById(Long id) {
+    public void deleteById(UUID id) {
         relatorioAvaliacaoGeralRepository.deleteById(id);
     }
 
@@ -213,7 +214,7 @@ public class relatorioAvaliacaoGService {
     }
 
     @Transactional
-    public relatorioAvaliacaoGeral atualizarRelatorioGeral(Long id, relatorioAvaliacaoGeral relatorioAvaliacaoGeralAtualizado) {
+    public relatorioAvaliacaoGeral atualizarRelatorioGeral(UUID id, relatorioAvaliacaoGeral relatorioAvaliacaoGeralAtualizado) {
         Optional<relatorioAvaliacaoGeral> existingRelatorioOptional = relatorioAvaliacaoGeralRepository.findById(id);
 
         if (existingRelatorioOptional.isPresent()) {

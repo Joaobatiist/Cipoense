@@ -5,7 +5,8 @@ import com.br.Entity.tecnico;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
+import java.util.UUID;
 
-public interface tecnicoRepository extends JpaRepository <tecnico, Long>{
+public interface tecnicoRepository extends JpaRepository <tecnico, UUID>{
     Optional<tecnico> findByEmail(String email);
 }

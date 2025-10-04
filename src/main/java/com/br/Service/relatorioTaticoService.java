@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class relatorioTaticoService {
@@ -51,7 +52,7 @@ public class relatorioTaticoService {
 
 
     @Transactional
-    public void deleteByIdTatico(Long id) { // Renomeado de deleteByIdTatico para deleteById
+    public void deleteByIdTatico(UUID id) { // Renomeado de deleteByIdTatico para deleteById
         relatorioTaticoRepository.deleteById(id);
     }
 
@@ -61,7 +62,7 @@ public class relatorioTaticoService {
     }
 
     @Transactional
-    public relatorioTaticoPsicologico atualizarRelatorioTatico(Long id, relatorioTaticoPsicologico relatorioTaticoPsicologicoAtualizado) { // Renomeado o método
+    public relatorioTaticoPsicologico atualizarRelatorioTatico(UUID id, relatorioTaticoPsicologico relatorioTaticoPsicologicoAtualizado) { // Renomeado o método
         Optional<relatorioTaticoPsicologico> existingRelatorioOptional = relatorioTaticoRepository.findById(id); // Usa o ID do parâmetro
 
         if (existingRelatorioOptional.isPresent()) {

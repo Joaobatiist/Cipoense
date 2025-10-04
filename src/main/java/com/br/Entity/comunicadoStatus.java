@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import org.hibernate.annotations.UuidGenerator;
+
+import java.util.UUID;
 
 @Entity
 @Data
@@ -14,8 +17,9 @@ import lombok.AllArgsConstructor;
 public class comunicadoStatus {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    @GeneratedValue
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comunicado_id", nullable = false)
@@ -48,7 +52,7 @@ public class comunicadoStatus {
     public boolean isForTecnico() { return this.tecnico != null; }
 
     // Método auxiliar para obter o ID do usuário relacionado (para conveniência)
-    public Long getAssociatedUserId() {
+    public UUID getAssociatedUserId() {
         if (atleta != null) return atleta.getId();
         if (coordenador != null) return coordenador.getId();
         if (supervisor != null) return supervisor.getId();

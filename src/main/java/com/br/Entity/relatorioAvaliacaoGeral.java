@@ -10,7 +10,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties; // Importar
+import org.hibernate.annotations.UuidGenerator;
 
 @Getter
 @Setter
@@ -22,8 +25,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties; // Importar
 public class relatorioAvaliacaoGeral {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    @GeneratedValue
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "atleta_id")

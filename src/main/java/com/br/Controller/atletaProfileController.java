@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/atleta/profile")
@@ -32,7 +33,7 @@ public class atletaProfileController {
     @PreAuthorize("hasRole('ATLETA')")
     public ResponseEntity<atletaProfileDto> getProfile(HttpServletRequest request) {
         String token = extractToken(request);
-        Long atletaId = jwtUtil.extractUserId(token);
+        UUID atletaId = jwtUtil.extractUserId(token);
 
         atletaProfileDto profile = atletaProfileService.getProfile(atletaId);
         return ResponseEntity.ok()
@@ -46,7 +47,7 @@ public class atletaProfileController {
             HttpServletRequest request,
             @RequestBody atletaProfileDto profileDto) {
         String token = extractToken(request);
-        Long atletaId = jwtUtil.extractUserId(token);
+        UUID atletaId = jwtUtil.extractUserId(token);
 
         atletaProfileDto updatedProfile = atletaProfileService.updateProfile(atletaId, profileDto);
         return ResponseEntity.ok(updatedProfile);
@@ -57,7 +58,7 @@ public class atletaProfileController {
     public ResponseEntity<String> uploadPhoto(HttpServletRequest request,
                                               @RequestParam("file") MultipartFile file) throws IOException {
         String token = extractToken(request);
-        Long atletaId = jwtUtil.extractUserId(token);
+        UUID atletaId = jwtUtil.extractUserId(token);
 
         // --- INÍCIO DA MUDANÇA ESSENCIAL AQUI ---
         // Chame o método do serviço que já faz o salvamento e retorna a string Base64
@@ -72,7 +73,7 @@ public class atletaProfileController {
             HttpServletRequest request,
             @RequestParam("files") MultipartFile[] files) {
         String token = extractToken(request);
-        Long atletaId = jwtUtil.extractUserId(token);
+        UUID atletaId = jwtUtil.extractUserId(token);
 
         List<atletaProfileDto.DocumentoDto> documents = atletaProfileService.uploadDocuments(atletaId, files);
         return ResponseEntity.ok(documents);
@@ -82,9 +83,9 @@ public class atletaProfileController {
     @PreAuthorize("hasRole('ATLETA')")
     public ResponseEntity<Void> deleteDocument(
             HttpServletRequest request,
-            @PathVariable Long documentId) {
+            @PathVariable UUID documentId) {
         String token = extractToken(request);
-        Long atletaId = jwtUtil.extractUserId(token);
+        UUID atletaId = jwtUtil.extractUserId(token);
 
         atletaProfileService.deleteDocument(atletaId, documentId);
         return ResponseEntity.noContent().build();

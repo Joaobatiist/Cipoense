@@ -6,6 +6,7 @@ import com.br.Enums.role;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -13,7 +14,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class funcionarioListagemResponse {
 
-    private Long id;
+    private UUID id;
     private String nome;
     private String email;
     private LocalDate dataNascimento;
@@ -22,7 +23,7 @@ public class funcionarioListagemResponse {
     private role roles;
     private String uniqueId;
 
-    public funcionarioListagemResponse(String uniqueId, Long id, String nome, String cpf, LocalDate dataNascimento, String email, role roles, String telefone) {
+    public funcionarioListagemResponse(String uniqueId, UUID id, String nome, String cpf, LocalDate dataNascimento, String email, role roles, String telefone) {
         this.id = id;
         this.nome = nome;
         this.cpf = cpf;

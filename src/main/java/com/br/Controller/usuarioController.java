@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api") // O request mapping base para este controller
@@ -28,18 +29,18 @@ public class usuarioController {
 
 
     public static class UserForSelection {
-        public Long id;
+        public UUID id;
         public String nome;
         public String tipo; // Para diferenciar Aluno, Coordenador, Supervisor, Tecnico
 
-        public UserForSelection(Long id, String nome, String tipo) {
+        public UserForSelection(UUID id, String nome, String tipo) {
             this.id = id;
             this.nome = nome;
             this.tipo = tipo;
         }
 
         // Getters para serialização JSON (Lombok @Data faria isso automaticamente)
-        public Long getId() { return id; }
+        public UUID getId() { return id; }
         public String getNome() { return nome; }
         public String getTipo() { return tipo; }
     }

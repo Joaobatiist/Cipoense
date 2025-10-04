@@ -32,7 +32,6 @@ public class atletaProfileService {
     private final responsavelRepository responsavelRepository;
     private final String uploadDir;
 
-   
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public atletaProfileService(
@@ -46,12 +45,12 @@ public class atletaProfileService {
         this.uploadDir = uploadDir;
     }
 
-    public atletaProfileDto getProfile(Long atletaId) {
+    public atletaProfileDto getProfile(UUID atletaId) {
         atleta atleta = findAtletaById(atletaId);
         return convertToDto(atleta);
     }
 
-    public atletaProfileDto updateProfile(Long atletaId, atletaProfileDto profileDto) {
+    public atletaProfileDto updateProfile(UUID atletaId, atletaProfileDto profileDto) {
         atleta atleta = findAtletaById(atletaId);
 
         atleta.setNome(profileDto.getNome());
@@ -96,29 +95,32 @@ public class atletaProfileService {
         return convertToDto(updatedAtleta);
     }
 
-
-    public String uploadPhoto(Long atletaId, MultipartFile file) {
+    public String uploadPhoto(UUID atletaId, MultipartFile file) {
         atleta atleta = findAtletaById(atletaId);
 
         try {
             byte[] bytes = file.getBytes();
-            atleta.setFoto(bytes);
+            String base64String = Base64.getEncoder().encodeToString(bytes);
+
+            // ALTERAÇÃO: Agora salva como String Base64 diretamente
+            atleta.setFoto(base64String);
             atleta.setFotoContentType(file.getContentType());
             atletaRepository.save(atleta);
-            return "data:" + file.getContentType() + ";base64," + Base64.getEncoder().encodeToString(bytes);
+
+            return "data:" + file.getContentType() + ";base64," + base64String;
         } catch (IOException e) {
             throw new RuntimeException("Erro ao processar a imagem do perfil.", e);
         }
     }
 
-    public List<atletaProfileDto.DocumentoDto> uploadDocuments(Long atletaId, MultipartFile[] files) {
+    public List<atletaProfileDto.DocumentoDto> uploadDocuments(UUID atletaId, MultipartFile[] files) {
         findAtletaById(atletaId); // Garante que o atleta exista
         return Arrays.stream(files)
                 .map(file -> saveDocument(atletaId, file))
                 .collect(Collectors.toList());
     }
 
-    private atletaProfileDto.DocumentoDto saveDocument(Long atletaId, MultipartFile file) {
+    private atletaProfileDto.DocumentoDto saveDocument(UUID atletaId, MultipartFile file) {
         atleta atleta = findAtletaById(atletaId);
 
         try {
@@ -147,7 +149,7 @@ public class atletaProfileService {
         }
     }
 
-    public void deleteDocument(Long atletaId, Long documentId) {
+    public void deleteDocument(UUID atletaId, UUID documentId) {
         documentoAtleta documento = documentoRepository.findByIdAndAtletaId(documentId, atletaId)
                 .orElseThrow(() -> new RuntimeException("Documento não encontrado para o atleta especificado."));
 
@@ -160,7 +162,7 @@ public class atletaProfileService {
         }
     }
 
-    private atleta findAtletaById(Long atletaId) {
+    private atleta findAtletaById(UUID atletaId) {
         return atletaRepository.findById(atletaId)
                 .orElseThrow(() -> new RuntimeException("Atleta não encontrado com o ID: " + atletaId));
     }
@@ -176,9 +178,9 @@ public class atletaProfileService {
         // Formata a data de LocalDate (do DB) para String (DD/MM/YYYY para o frontend)
         dto.setDataNascimento(atleta.getDataNascimento() != null ? atleta.getDataNascimento().format(DATE_FORMATTER) : null);
 
-        // Este bloco já estava correto e é essencial: converte byte[] para string Base64 para o frontend
-        if (atleta.getFoto() != null && atleta.getFoto().length > 0 && atleta.getFotoContentType() != null) {
-            dto.setFoto("data:" + atleta.getFotoContentType() + ";base64," + Base64.getEncoder().encodeToString(atleta.getFoto()));
+        // ALTERAÇÃO: Como foto agora é String (Base64), não precisa converter
+        if (atleta.getFoto() != null && !atleta.getFoto().isEmpty() && atleta.getFotoContentType() != null) {
+            dto.setFoto("data:" + atleta.getFotoContentType() + ";base64," + atleta.getFoto());
         } else {
             dto.setFoto(null);
         }

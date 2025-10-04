@@ -2,6 +2,9 @@ package com.br.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
+
+import java.util.UUID;
 
 @Entity
 @Data
@@ -14,8 +17,9 @@ public class estoque {
 
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    @GeneratedValue
+    private UUID id;
     @Column(nullable = false)
     private String nome;
     @Column(nullable = false)

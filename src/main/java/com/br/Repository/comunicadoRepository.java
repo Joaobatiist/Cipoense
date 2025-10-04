@@ -11,9 +11,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface comunicadoRepository extends JpaRepository<comunicado, Long> {
+public interface comunicadoRepository extends JpaRepository<comunicado, UUID> {
 
     // Busca todos os comunicados com todos os destinatários e remetentes carregados
     @Query("SELECT DISTINCT c FROM comunicado c " + // DISTINCT para evitar duplicação em ManyToMany
@@ -36,7 +37,7 @@ public interface comunicadoRepository extends JpaRepository<comunicado, Long> {
             "LEFT JOIN FETCH c.remetenteSupervisor rs " +
             "LEFT JOIN FETCH c.remetenteTecnico rt " +
             "WHERE c.id = :id")
-    Optional<comunicado> findByIdWithAllDetails(@Param("id") Long id);
+    Optional<comunicado> findByIdWithAllDetails(@Param("id") UUID id);
 
 
     // Métodos findByRemetenteX com FETCH JOIN para carregar detalhes
@@ -87,7 +88,7 @@ public interface comunicadoRepository extends JpaRepository<comunicado, Long> {
             "LEFT JOIN FETCH c.remetenteTecnico rt " +
             "LEFT JOIN comunicadoStatus cs ON cs.comunicado = c AND cs.atleta.id = :atletaId " +
             "WHERE da.id = :atletaId AND (cs.id IS NULL OR cs.ocultado = false)")
-    List<comunicado> findComunicadosByDestinatarioAtletaIdAndNotOcultado(@Param("atletaId") Long atletaId);
+    List<comunicado> findComunicadosByDestinatarioAtletaIdAndNotOcultado(@Param("atletaId") UUID atletaId);
 
     @Query("SELECT DISTINCT c FROM comunicado c " +
             "LEFT JOIN FETCH c.destinatariosAtletas da " +
@@ -99,7 +100,7 @@ public interface comunicadoRepository extends JpaRepository<comunicado, Long> {
             "LEFT JOIN FETCH c.remetenteTecnico rt " +
             "LEFT JOIN comunicadoStatus cs ON cs.comunicado = c AND cs.coordenador.id = :coordenadorId " +
             "WHERE dc.id = :coordenadorId AND (cs.id IS NULL OR cs.ocultado = false)")
-    List<comunicado> findComunicadosByDestinatarioCoordenadorIdAndNotOcultado(@Param("coordenadorId") Long coordenadorId);
+    List<comunicado> findComunicadosByDestinatarioCoordenadorIdAndNotOcultado(@Param("coordenadorId") UUID coordenadorId);
 
     @Query("SELECT DISTINCT c FROM comunicado c " +
             "LEFT JOIN FETCH c.destinatariosAtletas da " +
@@ -111,7 +112,7 @@ public interface comunicadoRepository extends JpaRepository<comunicado, Long> {
             "LEFT JOIN FETCH c.remetenteTecnico rt " +
             "LEFT JOIN comunicadoStatus cs ON cs.comunicado = c AND cs.supervisor.id = :supervisorId " +
             "WHERE ds.id = :supervisorId AND (cs.id IS NULL OR cs.ocultado = false)")
-    List<comunicado> findComunicadosByDestinatarioSupervisorIdAndNotOcultado(@Param("supervisorId") Long supervisorId);
+    List<comunicado> findComunicadosByDestinatarioSupervisorIdAndNotOcultado(@Param("supervisorId") UUID supervisorId);
 
     @Query("SELECT DISTINCT c FROM comunicado c " +
             "LEFT JOIN FETCH c.destinatariosAtletas da " +
@@ -123,5 +124,5 @@ public interface comunicadoRepository extends JpaRepository<comunicado, Long> {
             "LEFT JOIN FETCH c.remetenteTecnico rt " +
             "LEFT JOIN comunicadoStatus cs ON cs.comunicado = c AND cs.tecnico.id = :tecnicoId " +
             "WHERE dt.id = :tecnicoId AND (cs.id IS NULL OR cs.ocultado = false)")
-    List<comunicado> findComunicadosByDestinatarioTecnicoIdAndNotOcultado(@Param("tecnicoId") Long tecnicoId);
+    List<comunicado> findComunicadosByDestinatarioTecnicoIdAndNotOcultado(@Param("tecnicoId") UUID tecnicoId);
 }

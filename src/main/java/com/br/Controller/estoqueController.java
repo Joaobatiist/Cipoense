@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -48,7 +49,7 @@ public class estoqueController {
     }
 
     @GetMapping("/estoque/{id}")
-    public ResponseEntity<estoque> buscarEstoque(@PathVariable("id") Long id){
+    public ResponseEntity<estoque> buscarEstoque(@PathVariable("id") UUID id){
         try {
             Optional<estoque> item = estoqueService.buscaEstoque(id);
             return item.map(ResponseEntity::ok)
@@ -62,7 +63,7 @@ public class estoqueController {
 
 
     @PutMapping("/estoque/{id}")
-    public ResponseEntity<estoque> atualizarEstoque(@PathVariable Long id, @RequestBody estoque item){
+    public ResponseEntity<estoque> atualizarEstoque(@PathVariable UUID id, @RequestBody estoque item){
         try {
            estoque estoque = estoqueService.atualizarItem(id, item);
             return ResponseEntity.ok(estoque);
@@ -75,7 +76,7 @@ public class estoqueController {
         }
     }
     @DeleteMapping("/estoque/{id}")
-    public ResponseEntity<Void> deletarEvento(@PathVariable Long id) {
+    public ResponseEntity<Void> deletarEvento(@PathVariable UUID id) {
         try {
             estoqueService.deletarItem(id);
             return ResponseEntity.noContent().build(); // Return 204 No Content for successful deletion

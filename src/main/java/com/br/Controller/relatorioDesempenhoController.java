@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/relatorios/desempenho")
@@ -43,7 +44,7 @@ public class relatorioDesempenhoController {
 
     @DeleteMapping("/deletar")
 
-    public ResponseEntity<Void> deleterelatorioDesempenho(@PathVariable Long id) {
+    public ResponseEntity<Void> deleterelatorioDesempenho(@PathVariable UUID id) {
         try {
             relatorioDesempenhoService.deleteByIdDesempenho(id);
             return ResponseEntity.noContent().build();
@@ -54,7 +55,7 @@ public class relatorioDesempenhoController {
 
     @PutMapping("/atualizar")
 
-    public ResponseEntity<relatorioDesempenho>atualizarrelatorioDesempenho(@PathVariable Long id, @RequestBody relatorioDesempenho relatorioDesempenho) {
+    public ResponseEntity<relatorioDesempenho>atualizarrelatorioDesempenho(@PathVariable UUID id, @RequestBody relatorioDesempenho relatorioDesempenho) {
         try {
             relatorioDesempenho relatorioDesempenhoAtualizado = relatorioDesempenhoService.atualizarRelatorioDesempenho(id, relatorioDesempenho);
             return ResponseEntity.ok(relatorioDesempenhoAtualizado);

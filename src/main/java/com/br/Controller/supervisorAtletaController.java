@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/supervisor/atletas")
@@ -34,7 +35,7 @@ public class supervisorAtletaController {
 
     @GetMapping("/{atletaId}")
 
-    public ResponseEntity<atletaProfileDto> getAtletaById(@PathVariable Long atletaId) {
+    public ResponseEntity<atletaProfileDto> getAtletaById(@PathVariable UUID atletaId) {
         atletaProfileDto profile = atletaSupervisorService.getAtletaProfile(atletaId);
         return ResponseEntity.ok(profile);
     }
@@ -42,7 +43,7 @@ public class supervisorAtletaController {
     @PutMapping("/{atletaId}")
 
     public ResponseEntity<atletaProfileDto> updateAtleta(
-            @PathVariable Long atletaId,
+            @PathVariable UUID atletaId,
             @RequestBody atletaProfileDto profileDto) {
         atletaProfileDto updatedProfile = atletaSupervisorService.updateAtleta(atletaId, profileDto);
         return ResponseEntity.ok(updatedProfile);
@@ -50,7 +51,7 @@ public class supervisorAtletaController {
 
     @DeleteMapping("deletar/{atletaId}")
 
-    public ResponseEntity<Void> deleteAtleta(@PathVariable Long atletaId) {
+    public ResponseEntity<Void> deleteAtleta(@PathVariable UUID atletaId) {
         atletaSupervisorService.deleteAtleta(atletaId);
 
 
@@ -61,7 +62,7 @@ public class supervisorAtletaController {
     @PostMapping("/{atletaId}/documento-pdf")
 
     public ResponseEntity<String> uploadAtletaDocumentoPdf(
-            @PathVariable Long atletaId,
+            @PathVariable UUID atletaId,
             @RequestParam("file") MultipartFile file) throws IOException {
         String pdfBase64 = atletaSupervisorService.uploadDocumentoPdf(atletaId, file);
         return ResponseEntity.ok(pdfBase64);
@@ -70,7 +71,7 @@ public class supervisorAtletaController {
     // --- NOVO ENDPOINT PARA DELETAR O PDF PRINCIPAL ---
     @DeleteMapping("/{atletaId}/documento-pdf")
 
-    public ResponseEntity<Void> deleteAtletaMainPdf(@PathVariable Long atletaId) {
+    public ResponseEntity<Void> deleteAtletaMainPdf(@PathVariable UUID atletaId) {
         atletaSupervisorService.deleteMainPdf(atletaId);
         return ResponseEntity.noContent().build();
     }

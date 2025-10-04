@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/relatoriogeral")
@@ -43,7 +44,7 @@ public class relatorioAvaliacaoGeralController {
     }
 
     @GetMapping("/buscarporid/{id}")
-    public ResponseEntity<avaliacaoGeralResponse> buscarRelatorioGeralPorId(@PathVariable Long id) {
+    public ResponseEntity<avaliacaoGeralResponse> buscarRelatorioGeralPorId(@PathVariable UUID id) {
         Optional<relatorioAvaliacaoGeral> relatorioOptional = relatorioAvaliacaoGService.findById(id);
 
         return relatorioOptional.map(relatorioGeral -> {
@@ -53,7 +54,7 @@ public class relatorioAvaliacaoGeralController {
     }
 
     @GetMapping("/visualizar/{id}")
-    public ResponseEntity<avaliacaoGeralResponse> visualizarRelatorioGeralPorId(@PathVariable Long id) {
+    public ResponseEntity<avaliacaoGeralResponse> visualizarRelatorioGeralPorId(@PathVariable UUID id) {
         return relatorioAvaliacaoGService.findById(id)
                 .map(avaliacaoGeralResponse::new)
                 .map(ResponseEntity::ok)
@@ -61,14 +62,14 @@ public class relatorioAvaliacaoGeralController {
     }
 
     @DeleteMapping("/deletarporid/{id}")
-    public ResponseEntity<Void> deletarRelatorioGeral(@PathVariable Long id) {
+    public ResponseEntity<Void> deletarRelatorioGeral(@PathVariable UUID id) {
         relatorioAvaliacaoGService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<relatorioAvaliacaoGeral> atualizarRelatorioGeral(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @RequestBody relatorioAvaliacaoGeral relatorioAvaliacaoGeralAtualizado) {
         try {
             relatorioAvaliacaoGeral relatorioAtualizado = relatorioAvaliacaoGService.atualizarRelatorioGeral(id, relatorioAvaliacaoGeralAtualizado);

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class estoqueService {
@@ -29,7 +30,7 @@ public class estoqueService {
    }
 
    @Transactional
-   public estoque atualizarItem(Long id, estoque estoque){
+   public estoque atualizarItem(UUID id, estoque estoque){
         Optional<estoque> existingEstoque = estoqueRepository.findById(estoque.getId());
         if (existingEstoque.isPresent()) {
             estoque estoqueAtualizado = existingEstoque.get();
@@ -42,14 +43,14 @@ public class estoqueService {
    }
 
     @Transactional
-   public void deletarItem(Long id){
+   public void deletarItem(UUID id){
         if (!estoqueRepository.existsById(id)) {
             throw new RuntimeException("Item não encontrado" + id );
         }
         estoqueRepository.deleteById(id);
    }
 
-   public Optional<estoque> buscaEstoque(Long id){
+   public Optional<estoque> buscaEstoque(UUID id){
         return estoqueRepository.findById(id);
    }
 

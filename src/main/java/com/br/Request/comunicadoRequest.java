@@ -4,6 +4,7 @@ import lombok.Data; // Para @Getter, @Setter, @NoArgsConstructor
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Data // Gera Getters, Setters, toString, equals, hashCode e construtor padrão
 public class comunicadoRequest {
@@ -12,8 +13,8 @@ public class comunicadoRequest {
     private LocalDate data; // Opcional, pode ser gerado no backend
 
     // Listas de IDs para cada tipo de destinatário
-    private List<Long> atletasIds;
-    private List<Long> coordenadorIds;
-    private List<Long> supervisorIds;
-    private List<Long> tecnicoIds;
+    private List<UUID> atletasIds;
+    private List<UUID> coordenadorIds;
+    private List<UUID> supervisorIds;
+    private List<UUID> tecnicoIds;
 }
