@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class authController {
 
     private final AuthenticationManager authenticationManager;
