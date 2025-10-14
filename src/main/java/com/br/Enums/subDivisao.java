@@ -1,6 +1,12 @@
 package com.br.Enums;
 
 public enum subDivisao {
+    SUB_4,
+    SUB_5,
+    SUB_6,
+    SUB_7,
+    SUB_8,
+    SUB_9,
     SUB_10,
     SUB_11,
     SUB_12,

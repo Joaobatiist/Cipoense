@@ -172,7 +172,7 @@ public class securityConfig {
         configuration.setAllowCredentials(true);
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:8081/",
-                "http://192.168.1.4:8081"
+                "http://192.168.1.4:8080"
         ));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
