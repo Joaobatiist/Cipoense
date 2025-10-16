@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: cipoense-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: @Joaosurf1
+      MYSQL_DATABASE: cipoense
+      MYSQL_USER: root
+      MYSQL_PASSWORD: @Joaosurf1
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  api:
+    build: .
+    container_name: adcipoense-api
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      JWT_SECRET: asdfghjklkjhgfdsdfghjklkjhgfdsdfghjklkjhgfdsdfghjklkjhgfds=
+      GEMINI_API_KEY: AIzaSyAUR7Fgy0lgsxy3j-5NY56et0UDU8oQi-c
+      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/cipoense"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: @Joaosurf1
+    depends_on:
+      - db
+
+volumes:
+  mysql_data:
