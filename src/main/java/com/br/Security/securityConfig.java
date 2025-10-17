@@ -56,6 +56,7 @@ public class securityConfig {
                         // --- ATLETA ---
                         .requestMatchers(HttpMethod.GET, "/api/atleta/minha-analise").hasAuthority("ATLETA")
                         .requestMatchers(HttpMethod.GET,"/api/atleta/profile/**").hasAuthority("ATLETA")
+                        .requestMatchers(HttpMethod.POST, "/api/atleta/profile/photo" ).hasAuthority("ATLETA")
                         .requestMatchers(HttpMethod.POST,"/api/atleta/documents").hasAuthority("ATLETA")
                         .requestMatchers(HttpMethod.DELETE,"/api/atleta/documents/{documentId}").hasAuthority("ATLETA")
                         // Catch-all para atleta (deve vir por último nas regras de atleta)
@@ -63,6 +64,7 @@ public class securityConfig {
 
                         // --- SUPERVISOR, COORDENADOR, TÉCNICO ---
                         .requestMatchers(HttpMethod.GET, "/api/analises/atleta/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/analises/delete").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.POST, "/cadastro/funcionarios").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         .requestMatchers(HttpMethod.DELETE,"/api/supervisor/atletas/deletar/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         .requestMatchers(HttpMethod.PUT,"/api/supervisor/atletas/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
@@ -118,7 +120,7 @@ public class securityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // ⭐️ CORREÇÃO: Adicione a URL do seu front-end de produção!
         configuration.setAllowedOrigins(Arrays.asList(
-                "http://adcipoense.cloud",
+                "https://adcipeonse.cloud",
                 "http://localhost:8081",
                 "http://192.168.1.4:8080" // Pode manter para testes na rede local
         ));

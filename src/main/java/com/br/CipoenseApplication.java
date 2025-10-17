@@ -1,6 +1,6 @@
 package com.br;
 
-import com.br.Entity.Super;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

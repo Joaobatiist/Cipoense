@@ -30,7 +30,7 @@ public class atletaProfileController {
     private jwtUtil jwtUtil;
 
     @GetMapping
-    @PreAuthorize("hasRole('ATLETA')")
+
     public ResponseEntity<atletaProfileDto> getProfile(HttpServletRequest request) {
         String token = extractToken(request);
         UUID atletaId = jwtUtil.extractUserId(token);
@@ -42,7 +42,7 @@ public class atletaProfileController {
     }
 
     @PutMapping
-    @PreAuthorize("hasRole('ATLETA')")
+
     public ResponseEntity<atletaProfileDto> updateProfile(
             HttpServletRequest request,
             @RequestBody atletaProfileDto profileDto) {
@@ -54,7 +54,7 @@ public class atletaProfileController {
     }
 
     @PostMapping("/photo")
-    @PreAuthorize("hasRole('ATLETA')")
+
     public ResponseEntity<String> uploadPhoto(HttpServletRequest request,
                                               @RequestParam("file") MultipartFile file) throws IOException {
         String token = extractToken(request);
@@ -68,7 +68,7 @@ public class atletaProfileController {
     }
 
     @PostMapping("/documents")
-    @PreAuthorize("hasRole('ATLETA')")
+
     public ResponseEntity<List<atletaProfileDto.DocumentoDto>> uploadDocuments(
             HttpServletRequest request,
             @RequestParam("files") MultipartFile[] files) {
@@ -80,7 +80,7 @@ public class atletaProfileController {
     }
 
     @DeleteMapping("/documents/{documentId}")
-    @PreAuthorize("hasRole('ATLETA')")
+
     public ResponseEntity<Void> deleteDocument(
             HttpServletRequest request,
             @PathVariable UUID documentId) {
