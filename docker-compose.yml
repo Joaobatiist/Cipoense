@@ -6,18 +6,12 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "@Joaosurf1"
       MYSQL_DATABASE: cipoense
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "@Joaosurf1"
     ports:
       - "3307:3306"
-    # Adicionado: Importa seu backup automaticamente na primeira inicialização
     volumes:
-      - ./cipoense_backup.sql:/docker-entrypoint-initdb.d/init.sql
-    # Adicionado: A verificação de saúde que garante que o MySQL está pronto
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p@Joaosurf1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      - mysql_data:/var/lib/mysql
 
   api:
     build: .
@@ -26,13 +20,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # Corrigido: Aponta para o serviço 'db', não 'localhost'
-      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/cipoense?serverTimezone=UTC"
-      SPRING_DATASOURCE_USERNAME: "root"
-      SPRING_DATASOURCE_PASSWORD: "@Joaosurf1"
       JWT_SECRET: "asdfghjklkjhgfdsdfghjklkjhgfdsdfghjklkjhgfdsdfghjklkjhgfds="
       GEMINI_API_KEY: "AIzaSyAUR7Fgy0lgsxy3j-5NY56et0UDU8oQi-c"
-    # Corrigido: Agora espera o 'db' estar saudável
+      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/cipoense"
+      SPRING_DATASOURCE_USERNAME: "root"
+      SPRING_DATASOURCE_PASSWORD: "@Joaosurf1"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
+
+volumes:
+  mysql_data:
