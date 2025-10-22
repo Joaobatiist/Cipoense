@@ -2,7 +2,7 @@ package com.br.Security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpMethod; // <--- ESTE IMPORT É NECESSÁRIO
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -38,6 +38,13 @@ public class securityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Habilita o CORS com nossa configuração
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+
+                        // ⭐️⭐️⭐️ INÍCIO DA CORREÇÃO ⭐️⭐️⭐️
+                        // Esta linha permite que o Spring Security aceite as requisições "preflight" (OPTIONS)
+                        // que o navegador envia antes do POST de login.
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // ⭐️⭐️⭐️ FIM DA CORREÇÃO ⭐️⭐️⭐️
+
                         // =================================================================
                         // 1. ENDPOINTS PÚBLICOS (Não precisam de token)
                         // =================================================================
@@ -69,8 +76,8 @@ public class securityConfig {
                         .requestMatchers(HttpMethod.DELETE,"/api/supervisor/atletas/deletar/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         .requestMatchers(HttpMethod.PUT,"/api/supervisor/atletas/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         .requestMatchers(HttpMethod.GET,"/api/supervisor/atletas/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.DELETE,"/api/supervisor/atletas/{atletaId}/documento-pdf").hasAuthority("SUPERVISOR")
-                        .requestMatchers(HttpMethod.POST,"/api/supervisor/atletas/{atletaId}/documento-pdf").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+                        .requestMatchers(HttpMethod.DELETE,"/api/supervisor/atletas/*/documento-pdf").hasAuthority("SUPERVISOR")
+                        .requestMatchers(HttpMethod.POST, "/api/supervisor/atletas/*/documento-pdf").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         .requestMatchers("/api/estoque/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers("/api/usuarios-para-comunicado").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers("/api/presenca/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
@@ -122,7 +129,7 @@ public class securityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "https://adcipeonse.cloud",
                 "http://localhost:8081",
-                "http://192.168.1.4:8080" // Pode manter para testes na rede local
+                "http://192.1.4:8080" // Pode manter para testes na rede local
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*")); // Permite todos os cabeçalhos

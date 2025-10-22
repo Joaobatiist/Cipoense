@@ -36,6 +36,7 @@ public class listaFuncionariosService {
                     supervisor.setEmail(dto.getEmail());
                     supervisor.setDataNascimento(dto.getDataNascimento());
                     supervisor.setCpf(dto.getCpf());
+                    supervisor.setRoles(dto.getRoles());
                     supervisor.setTelefone(dto.getTelefone());
                     supervisorRepository.save(supervisor);
                 });
@@ -46,6 +47,7 @@ public class listaFuncionariosService {
                     coordenador.setEmail(dto.getEmail());
                     coordenador.setDataNascimento(dto.getDataNascimento());
                     coordenador.setCpf(dto.getCpf());
+                    coordenador.setRoles(dto.getRoles());
                     coordenador.setTelefone(dto.getTelefone());
                     coordenadorRepository.save(coordenador);
                 });
@@ -56,6 +58,7 @@ public class listaFuncionariosService {
                     tecnico.setEmail(dto.getEmail());
                     tecnico.setDataNascimento(dto.getDataNascimento());
                     tecnico.setCpf(dto.getCpf());
+                    tecnico.setRoles(dto.getRoles());
                     tecnico.setTelefone(dto.getTelefone());
                     tecnicoRepository.save(tecnico);
                 });

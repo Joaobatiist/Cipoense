@@ -70,6 +70,7 @@ public class listaFuncionarioController {
             }
 
             listaFuncionarios.atualizarFuncionario(dto);
+            System.out.println(dto.getRoles());
             return ResponseEntity.ok("Funcionário atualizado com sucesso!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

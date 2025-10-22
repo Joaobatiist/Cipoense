@@ -86,7 +86,7 @@ public class atleta {
     private Boolean isAptoParaJogar = true;
 
     // ALTERAÇÃO: Mudança de byte[] para String (Base64)
-    @Column(name = "documento_pdf_bytes", columnDefinition = "TEXT")
+    @Column(name = "documento_pdf_bytes", columnDefinition = "LONGTEXT")
     private String documentoPdfBytes;
 
     @Column(name = "documento_pdf_content_type")

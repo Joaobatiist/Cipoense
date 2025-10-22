@@ -6,12 +6,18 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "@Joaosurf1"
       MYSQL_DATABASE: cipoense
-      MYSQL_USER: "root"
-      MYSQL_PASSWORD: "@Joaosurf1"
+
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p@Joaosurf1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
 
   api:
     build: .
@@ -20,13 +26,15 @@ services:
     ports:
       - "8080:8080"
     environment:
-      JWT_SECRET: "asdfghjklkjhgfdsdfghjklkjhgfdsdfghjklkjhgfdsdfghjklkjhgfds="
-      GEMINI_API_KEY: "AIzaSyAUR7Fgy0lgsxy3j-5NY56et0UDU8oQi-c"
-      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/cipoense"
+
+      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/cipoense?serverTimezone=UTC"
       SPRING_DATASOURCE_USERNAME: "root"
       SPRING_DATASOURCE_PASSWORD: "@Joaosurf1"
+
+
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   mysql_data:
