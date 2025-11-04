@@ -1,5 +1,6 @@
 package com.br.Response;
 
+import com.br.Entity.atleta;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,7 @@ import java.util.UUID;
 public class presencaResponse {
 
     private UUID id;
+    private UUID atletaId;
     private String nome;
     private Boolean presenca;
     private UUID eventoId;

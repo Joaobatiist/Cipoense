@@ -4,6 +4,8 @@ package com.br.Entity;
 import com.br.Enums.posicao;
 import com.br.Enums.role;
 import com.br.Enums.subDivisao;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
@@ -133,8 +135,9 @@ public class atleta {
     private String documentoPdfContentType;
 
     @ManyToMany(mappedBy = "atletasEscalados")
+    @JsonIgnore
     private Set<eventos> eventos = new HashSet<>();
-
+    @JsonManagedReference("atleta-presenca")
     @OneToMany(mappedBy = "atleta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<presenca> presencas;
 

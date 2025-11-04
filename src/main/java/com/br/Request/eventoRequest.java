@@ -5,16 +5,22 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class eventoRequest {
-    private String data;
-    private String descricao;
-    private String professor;
-    private String local;
-    private String horario;
-    private subDivisao subDivisao;
-    private List<presencaRequest> presencas; // lista de atletas e presença
+    // Lista de IDs dos atletas a serem vinculados ao evento
+    private List<UUID> atletasIds;
+
+    // Getters e Setters (pode usar Lombok @Data se preferir)
+
+    public List<UUID> getAtletasIds() {
+        return atletasIds;
+    }
+
+    public void setAtletasIds(List<UUID> atletasIds) {
+        this.atletasIds = atletasIds;
+    }
 
 }

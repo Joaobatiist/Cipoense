@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Repository
 public interface eventosRepository extends JpaRepository<eventos, UUID> {
     List<eventos> findBySubDivisao(subDivisao subDivisao);
-    Optional<eventos> findByLocalAndData(String Local, String Data);
+    Optional<eventos> findByLocalAndData(String Local, LocalDate data);
 
     @Query("SELECT DISTINCT e FROM eventos e " +
             "LEFT JOIN FETCH e.atletasEscalados ae " +
