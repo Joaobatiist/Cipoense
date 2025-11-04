@@ -15,7 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="reponsavel")
+@Table(name="responsavel")
 public class responsavel {
     @Id
     @UuidGenerator

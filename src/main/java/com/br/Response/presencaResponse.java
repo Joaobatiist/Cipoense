@@ -12,7 +12,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class presencaResponse {
+
     private UUID id;
     private String nome;
     private Boolean presenca;
+    private UUID eventoId;
+    private String eventoDescricao;
 }

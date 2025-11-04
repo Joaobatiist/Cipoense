@@ -1,9 +1,8 @@
 package com.br.Service;
 
 import com.br.Enums.role;
-import com.br.Repository.coordenadorRepository;
-import com.br.Repository.supervisorRepository;
-import com.br.Repository.tecnicoRepository;
+import com.br.Repository.funcionarioRepository; // Novo e único repositório
+import com.br.Entity.funcionario; // Importação da nova entidade Funcionario
 import com.br.Response.funcionarioListagemResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,73 +13,42 @@ import java.util.UUID;
 @Service
 public class listaFuncionariosService {
 
-    private final supervisorRepository supervisorRepository;
-    private final coordenadorRepository coordenadorRepository;
-    private final tecnicoRepository tecnicoRepository;
+    private final funcionarioRepository funcionarioRepository; // Apenas um repositório
 
     @Autowired
-    public listaFuncionariosService(supervisorRepository supervisorRepository,
-                                    coordenadorRepository coordenadorRepository,
-                                    tecnicoRepository tecnicoRepository) {
-        this.supervisorRepository = supervisorRepository;
-        this.coordenadorRepository = coordenadorRepository;
-        this.tecnicoRepository = tecnicoRepository;
+    public listaFuncionariosService(funcionarioRepository funcionarioRepository) {
+        this.funcionarioRepository = funcionarioRepository;
     }
 
+    // 1. Unificação do método de atualização
     @Transactional
     public  void atualizarFuncionario(funcionarioListagemResponse dto) {
-        switch (dto.getRoles()) {
-            case SUPERVISOR:
-                supervisorRepository.findById(dto.getId()).ifPresent(supervisor -> {
-                    supervisor.setNome(dto.getNome());
-                    supervisor.setEmail(dto.getEmail());
-                    supervisor.setDataNascimento(dto.getDataNascimento());
-                    supervisor.setCpf(dto.getCpf());
-                    supervisor.setRoles(dto.getRoles());
-                    supervisor.setTelefone(dto.getTelefone());
-                    supervisorRepository.save(supervisor);
-                });
-                break;
-            case COORDENADOR:
-                coordenadorRepository.findById(dto.getId()).ifPresent(coordenador -> {
-                    coordenador.setNome(dto.getNome());
-                    coordenador.setEmail(dto.getEmail());
-                    coordenador.setDataNascimento(dto.getDataNascimento());
-                    coordenador.setCpf(dto.getCpf());
-                    coordenador.setRoles(dto.getRoles());
-                    coordenador.setTelefone(dto.getTelefone());
-                    coordenadorRepository.save(coordenador);
-                });
-                break;
-            case TECNICO:
-                tecnicoRepository.findById(dto.getId()).ifPresent(tecnico -> {
-                    tecnico.setNome(dto.getNome());
-                    tecnico.setEmail(dto.getEmail());
-                    tecnico.setDataNascimento(dto.getDataNascimento());
-                    tecnico.setCpf(dto.getCpf());
-                    tecnico.setRoles(dto.getRoles());
-                    tecnico.setTelefone(dto.getTelefone());
-                    tecnicoRepository.save(tecnico);
-                });
-                break;
-            default:
-                throw new IllegalArgumentException("Tipo de funcionário não suportado: " + dto.getRoles());
-        }
+        // Busca o funcionário pelo ID, independente da Role
+        funcionarioRepository.findById(dto.getId()).ifPresent(funcionario -> {
+            // Atualiza os campos do funcionário
+            funcionario.setNome(dto.getNome());
+            funcionario.setEmail(dto.getEmail());
+            funcionario.setDataNascimento(dto.getDataNascimento());
+            funcionario.setCpf(dto.getCpf());
+
+            // Assume que a entidade Funcionario tem um setter para a Role
+            funcionario.setRole(dto.getRole());
+
+            funcionario.setTelefone(dto.getTelefone());
+
+            // Salva a entidade única
+            funcionarioRepository.save(funcionario);
+        });
+
+        // Não é mais necessário o switch, pois a busca é unificada.
+        // Se o funcionário não for encontrado, o ifPresent simplesmente não executa.
+        // Poderia adicionar um 'else' para lançar uma exceção se necessário.
     }
+
+    // 2. Unificação do método de deleção
     @Transactional
     public void deletarFuncionario(UUID id, role role) {
-        switch (role) {
-            case SUPERVISOR:
-                supervisorRepository.deleteById(id);
-                break;
-            case COORDENADOR:
-                coordenadorRepository.deleteById(id);
-                break;
-            case TECNICO:
-                tecnicoRepository.deleteById(id);
-                break;
-            default:
-                throw new IllegalArgumentException("Tipo de funcionário não suportado: " + role);
-        }
+        funcionarioRepository.deleteById(id);
+
     }
 }

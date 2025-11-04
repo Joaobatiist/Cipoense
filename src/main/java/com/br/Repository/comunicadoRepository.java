@@ -1,9 +1,7 @@
 package com.br.Repository;
 
 import com.br.Entity.comunicado;
-import com.br.Entity.coordenador;
-import com.br.Entity.supervisor;
-import com.br.Entity.tecnico;
+import com.br.Entity.funcionario; // Substituição: Coordenador, Supervisor, Tecnico => funcionario
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,113 +14,48 @@ import java.util.UUID;
 @Repository
 public interface comunicadoRepository extends JpaRepository<comunicado, UUID> {
 
-    // Busca todos os comunicados com todos os destinatários e remetentes carregados
+    // 1. Busca todos os comunicados com todos os destinatários e remetentes carregados
     @Query("SELECT DISTINCT c FROM comunicado c " + // DISTINCT para evitar duplicação em ManyToMany
             "LEFT JOIN FETCH c.destinatariosAtletas da " +
-            "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
-            "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
-            "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
-            "LEFT JOIN FETCH c.remetenteCoordenador rc " +
-            "LEFT JOIN FETCH c.remetenteSupervisor rs " +
-            "LEFT JOIN FETCH c.remetenteTecnico rt")
+            "LEFT JOIN FETCH c.destinatariosFuncionarios df " + // Unificado
+            "LEFT JOIN FETCH c.remetenteFuncionario rf") // Unificado
     List<comunicado> findAllWithAllDetails();
 
-    // Busca comunicado por ID com todos os destinatários e remetentes carregados
+    // 2. Busca comunicado por ID com todos os destinatários e remetentes carregados
     @Query("SELECT c FROM comunicado c " +
             "LEFT JOIN FETCH c.destinatariosAtletas da " +
-            "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
-            "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
-            "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
-            "LEFT JOIN FETCH c.remetenteCoordenador rc " +
-            "LEFT JOIN FETCH c.remetenteSupervisor rs " +
-            "LEFT JOIN FETCH c.remetenteTecnico rt " +
+            "LEFT JOIN FETCH c.destinatariosFuncionarios df " + // Unificado
+            "LEFT JOIN FETCH c.remetenteFuncionario rf " + // Unificado
             "WHERE c.id = :id")
     Optional<comunicado> findByIdWithAllDetails(@Param("id") UUID id);
 
 
-    // Métodos findByRemetenteX com FETCH JOIN para carregar detalhes
+    // 3. Método findByRemetenteFuncionario com FETCH JOIN para carregar detalhes
+    // Este método substitui findByRemetenteCoordenadorWithDetails, findByRemetenteSupervisorWithDetails e findByRemetenteTecnicoWithDetails
     @Query("SELECT c FROM comunicado c " +
             "LEFT JOIN FETCH c.destinatariosAtletas da " +
-            "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
-            "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
-            "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
-            "LEFT JOIN FETCH c.remetenteCoordenador rc " +
-            "LEFT JOIN FETCH c.remetenteSupervisor rs " +
-            "LEFT JOIN FETCH c.remetenteTecnico rt " +
-            "WHERE c.remetenteCoordenador = :coordenador")
-    List<comunicado> findByRemetenteCoordenadorWithDetails(@Param("coordenador") coordenador coordenador);
-
-    @Query("SELECT c FROM comunicado c " +
-            "LEFT JOIN FETCH c.destinatariosAtletas da " +
-            "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
-            "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
-            "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
-            "LEFT JOIN FETCH c.remetenteCoordenador rc " +
-            "LEFT JOIN FETCH c.remetenteSupervisor rs " +
-            "LEFT JOIN FETCH c.remetenteTecnico rt " +
-            "WHERE c.remetenteSupervisor = :supervisor")
-    List<comunicado> findByRemetenteSupervisorWithDetails(@Param("supervisor") supervisor supervisor);
-
-    @Query("SELECT c FROM comunicado c " +
-            "LEFT JOIN FETCH c.destinatariosAtletas da " +
-            "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
-            "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
-            "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
-            "LEFT JOIN FETCH c.remetenteCoordenador rc " +
-            "LEFT JOIN FETCH c.remetenteSupervisor rs " +
-            "LEFT JOIN FETCH c.remetenteTecnico rt " +
-            "WHERE c.remetenteTecnico = :tecnico")
-    List<comunicado> findByRemetenteTecnicoWithDetails(@Param("tecnico") tecnico tecnico);
+            "LEFT JOIN FETCH c.destinatariosFuncionarios df " + // Unificado
+            "LEFT JOIN FETCH c.remetenteFuncionario rf " + // Unificado
+            "WHERE c.remetenteFuncionario = :funcionario")
+    List<comunicado> findByRemetenteFuncionarioWithDetails(@Param("funcionario") funcionario funcionario);
 
 
-    // NOVOS MÉTODOS: Buscar comunicados onde o usuário é destinatário e NÃO FOI OCULTADO
-    // Adicionado `LEFT JOIN` com `ComunicadoStatusPorUsuario` e verificado `cs.ocultado = false` ou `cs.id IS NULL`
-    // Isso garante que comunicados sem um registro de status (ou seja, nunca ocultados) também sejam retornados
+    // 4. NOVOS MÉTODOS: Buscar comunicados onde o usuário é destinatário e NÃO FOI OCULTADO
     @Query("SELECT DISTINCT c FROM comunicado c " +
             "LEFT JOIN FETCH c.destinatariosAtletas da " +
-            "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
-            "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
-            "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
-            "LEFT JOIN FETCH c.remetenteCoordenador rc " +
-            "LEFT JOIN FETCH c.remetenteSupervisor rs " +
-            "LEFT JOIN FETCH c.remetenteTecnico rt " +
+            "LEFT JOIN FETCH c.destinatariosFuncionarios df " + // Unificado
+            "LEFT JOIN FETCH c.remetenteFuncionario rf " + // Unificado
             "LEFT JOIN comunicadoStatus cs ON cs.comunicado = c AND cs.atleta.id = :atletaId " +
             "WHERE da.id = :atletaId AND (cs.id IS NULL OR cs.ocultado = false)")
     List<comunicado> findComunicadosByDestinatarioAtletaIdAndNotOcultado(@Param("atletaId") UUID atletaId);
 
+    // 5. Método para buscar comunicados para o novo destinatário 'Funcionario'
+    // Substitui findComunicadosByDestinatarioCoordenadorIdAndNotOcultado, ...SupervisorIdAndNotOcultado e ...TecnicoIdAndNotOcultado
     @Query("SELECT DISTINCT c FROM comunicado c " +
             "LEFT JOIN FETCH c.destinatariosAtletas da " +
-            "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
-            "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
-            "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
-            "LEFT JOIN FETCH c.remetenteCoordenador rc " +
-            "LEFT JOIN FETCH c.remetenteSupervisor rs " +
-            "LEFT JOIN FETCH c.remetenteTecnico rt " +
-            "LEFT JOIN comunicadoStatus cs ON cs.comunicado = c AND cs.coordenador.id = :coordenadorId " +
-            "WHERE dc.id = :coordenadorId AND (cs.id IS NULL OR cs.ocultado = false)")
-    List<comunicado> findComunicadosByDestinatarioCoordenadorIdAndNotOcultado(@Param("coordenadorId") UUID coordenadorId);
-
-    @Query("SELECT DISTINCT c FROM comunicado c " +
-            "LEFT JOIN FETCH c.destinatariosAtletas da " +
-            "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
-            "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
-            "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
-            "LEFT JOIN FETCH c.remetenteCoordenador rc " +
-            "LEFT JOIN FETCH c.remetenteSupervisor rs " +
-            "LEFT JOIN FETCH c.remetenteTecnico rt " +
-            "LEFT JOIN comunicadoStatus cs ON cs.comunicado = c AND cs.supervisor.id = :supervisorId " +
-            "WHERE ds.id = :supervisorId AND (cs.id IS NULL OR cs.ocultado = false)")
-    List<comunicado> findComunicadosByDestinatarioSupervisorIdAndNotOcultado(@Param("supervisorId") UUID supervisorId);
-
-    @Query("SELECT DISTINCT c FROM comunicado c " +
-            "LEFT JOIN FETCH c.destinatariosAtletas da " +
-            "LEFT JOIN FETCH c.destinatariosCoordenadores dc " +
-            "LEFT JOIN FETCH c.destinatariosSupervisores ds " +
-            "LEFT JOIN FETCH c.destinatariosTecnicos dt " +
-            "LEFT JOIN FETCH c.remetenteCoordenador rc " +
-            "LEFT JOIN FETCH c.remetenteSupervisor rs " +
-            "LEFT JOIN FETCH c.remetenteTecnico rt " +
-            "LEFT JOIN comunicadoStatus cs ON cs.comunicado = c AND cs.tecnico.id = :tecnicoId " +
-            "WHERE dt.id = :tecnicoId AND (cs.id IS NULL OR cs.ocultado = false)")
-    List<comunicado> findComunicadosByDestinatarioTecnicoIdAndNotOcultado(@Param("tecnicoId") UUID tecnicoId);
+            "LEFT JOIN FETCH c.destinatariosFuncionarios df " + // Unificado
+            "LEFT JOIN FETCH c.remetenteFuncionario rf " + // Unificado
+            "LEFT JOIN comunicadoStatus cs ON cs.comunicado = c AND cs.funcionario.id = :funcionarioId " + // Assumindo que comunicadoStatus também foi atualizado para referenciar 'funcionario'
+            "WHERE df.id = :funcionarioId AND (cs.id IS NULL OR cs.ocultado = false)")
+    List<comunicado> findComunicadosByDestinatarioFuncionarioIdAndNotOcultado(@Param("funcionarioId") UUID funcionarioId);
 }

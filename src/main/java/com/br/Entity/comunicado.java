@@ -25,22 +25,12 @@ public class comunicado {
     @UuidGenerator
     @GeneratedValue
     private UUID id;
-
     private String assunto;
     private String mensagem;
     private LocalDate data;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "remetente_coordenador_id") // ID do coordenador remetente
-    private coordenador remetenteCoordenador;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "remetente_supervisor_id") // ID do supervisor remetente
-    private supervisor remetenteSupervisor;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "remetente_tecnico_id") // ID do técnico remetente
-    private tecnico remetenteTecnico;
+    @JoinColumn(name = "remetenteFuncionario_ID")
+    private funcionario remetenteFuncionario;
 
     // Destinatários Alunos
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -51,59 +41,23 @@ public class comunicado {
     )
     private Set<atleta> destinatariosAtletas = new HashSet<>();
 
-
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-            name = "comunicado_destinatario_coordenador", // Nova tabela de junção
+            name = "comunicado_destinatario_funcionario",
             joinColumns = @JoinColumn(name = "comunicado_id"),
-            inverseJoinColumns = @JoinColumn(name = "coordenador_id")
+            inverseJoinColumns = @JoinColumn(name = "funcionario_id")
     )
-    private Set<coordenador> destinatariosCoordenadores = new HashSet<>();
+    private Set<funcionario> destinatariosFuncionarios = new HashSet<>();
 
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "comunicado_destinatario_supervisor", // Nova tabela de junção
-            joinColumns = @JoinColumn(name = "comunicado_id"),
-            inverseJoinColumns = @JoinColumn(name = "supervisor_id")
-    )
-    private Set<supervisor> destinatariosSupervisores = new HashSet<>();
-
-    // Destinatários Técnicos
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "comunicado_destinatario_tecnico", // Nova tabela de junção
-            joinColumns = @JoinColumn(name = "comunicado_id"),
-            inverseJoinColumns = @JoinColumn(name = "tecnico_id")
-    )
-    private Set<tecnico> destinatariosTecnicos = new HashSet<>();
-
+    public void addDestinatarioFuncionario(funcionario funcionario) {this.destinatariosFuncionarios.add(funcionario);}
+    public void removeDestinatarioFuncionario(funcionario funcionario) {this.destinatariosFuncionarios.remove(funcionario);}
 
     public void addDestinatarioAtleta(atleta atleta) {
         this.destinatariosAtletas.add(atleta);
     }
     public void removeDestinatarioAtleta(atleta atleta) {
         this.destinatariosAtletas.remove(atleta);
-    }
-
-    public void addDestinatarioCoordenador(coordenador coordenador) {
-        this.destinatariosCoordenadores.add(coordenador);
-    }
-    public void removeDestinatarioCoordenador(coordenador coordenador) {
-        this.destinatariosCoordenadores.remove(coordenador);
-    }
-
-    public void addDestinatarioSupervisor(supervisor supervisor) {
-        this.destinatariosSupervisores.add(supervisor);
-    }
-    public void removeDestinatarioSupervisor(supervisor supervisor) {
-        this.destinatariosSupervisores.remove(supervisor);
-    }
-
-    public void addDestinatarioTecnico(tecnico tecnico) {
-        this.destinatariosTecnicos.add(tecnico);
-    }
-    public void removeDestinatarioTecnico(tecnico tecnico) {
-        this.destinatariosTecnicos.remove(tecnico);
-    }
+    };
 }
+

@@ -1,13 +1,10 @@
 package com.br.Controller;
 
-
-
 import com.br.Enums.role;
 import com.br.Service.listaFuncionariosService;
 import com.br.Response.funcionarioListagemResponse;
-import com.br.Repository.coordenadorRepository;
-import com.br.Repository.supervisorRepository;
-import com.br.Repository.tecnicoRepository;
+import com.br.Repository.funcionarioRepository; // Novo e único repositório
+import com.br.Entity.funcionario; // Entidade Funcionario
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,55 +19,49 @@ import java.util.stream.Stream;
 @RequestMapping("/api/funcionarios")
 public class listaFuncionarioController {
 
-    private final tecnicoRepository tecnicoRepository;
-    private final coordenadorRepository coordenadorRepository;
-    private final supervisorRepository supervisorRepository;
-
-
-    private final listaFuncionariosService  listaFuncionarios;
+    private final funcionarioRepository funcionarioRepository; // Apenas o repositório unificado
+    private final listaFuncionariosService listaFuncionarios;
 
     @Autowired
-    public listaFuncionarioController(tecnicoRepository tecnicoRepository,
-                                      coordenadorRepository coordenadorRepository,
-                                      supervisorRepository supervisorRepository,
+    public listaFuncionarioController(funcionarioRepository funcionarioRepository,
                                       listaFuncionariosService listaFuncionarios) {
-        this.tecnicoRepository = tecnicoRepository;
-        this.coordenadorRepository = coordenadorRepository;
-        this.supervisorRepository = supervisorRepository;
+        this.funcionarioRepository = funcionarioRepository;
         this.listaFuncionarios = listaFuncionarios;
     }
 
+    // 1. Método de listagem unificado
     @GetMapping("/listarfuncionarios")
-    public ResponseEntity<List<funcionarioListagemResponse>> listarFuncionarios(){
-    List<funcionarioListagemResponse> todosFuncionarios = Stream.of(
-                          tecnicoRepository.findAll().stream()
-                                  .map(tecnico -> new funcionarioListagemResponse(tecnico.getRoles().name(), tecnico.getId(),tecnico.getNome(), tecnico.getCpf(),
-                                          tecnico.getDataNascimento(), tecnico.getEmail(), tecnico.getRoles(), tecnico.getTelefone())),
-                          coordenadorRepository.findAll().stream()
-                                  .map(coordenador -> new funcionarioListagemResponse(coordenador.getRoles().name(),coordenador.getId(),coordenador.getNome(), coordenador.getCpf(),
-                                          coordenador.getDataNascimento(),
-                                          coordenador.getEmail(), coordenador.getRoles(), coordenador.getTelefone())),
-                          supervisorRepository.findAll().stream()
-                                  .map(supervisor -> new funcionarioListagemResponse(supervisor.getRoles().name(),supervisor.getId(),supervisor.getNome(), supervisor.getCpf(),
-                                          supervisor.getDataNascimento(), supervisor.getEmail(), supervisor.getRoles(), supervisor.getTelefone()))
-                  )
-                  .flatMap(stream -> stream)
-                  .collect(Collectors.toList());
+    public ResponseEntity<List<funcionarioListagemResponse>> listarFuncionarios() {
+        // Busca todos os registros na tabela única 'funcionario'
+        List<funcionarioListagemResponse> todosFuncionarios = funcionarioRepository.findAll().stream()
+                .map(funcionario -> new funcionarioListagemResponse(
+                        funcionario.getRole().name(),
+                        funcionario.getId(),
+                        funcionario.getNome(),
+                        funcionario.getCpf(),
+                        funcionario.getDataNascimento(),
+                        funcionario.getEmail(),
+                        funcionario.getRole(),
+                        funcionario.getTelefone()
+                ))
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(todosFuncionarios);
     }
+
+    // 2. Método de atualização (inalterado, pois já usa o Service unificado)
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizarFuncionario(@PathVariable UUID id, @RequestBody funcionarioListagemResponse dto) {
         try {
-
             dto.setId(id);
 
-            if (dto.getRoles() == null) {
+            if (dto.getRole() == null) {
                 return ResponseEntity.badRequest().body("O tipo (role) do funcionário deve ser informado.");
             }
 
+            // O Service já foi refatorado para lidar com o objeto Funcionario Listagem Response
             listaFuncionarios.atualizarFuncionario(dto);
-            System.out.println(dto.getRoles());
+            System.out.println(dto.getRole());
             return ResponseEntity.ok("Funcionário atualizado com sucesso!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -79,9 +70,11 @@ public class listaFuncionarioController {
         }
     }
 
+    // 3. Método de deleção (mantendo a chamada ao Service, que já foi refatorado)
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletarFuncionario(@PathVariable UUID id, @RequestParam role roles) {
         try {
+            // No service refatorado, o parâmetro 'roles' é redundante, mas mantemos a assinatura por enquanto.
             listaFuncionarios.deletarFuncionario(id, roles);
             return ResponseEntity.ok("Funcionário excluído com sucesso!");
         } catch (IllegalArgumentException e) {

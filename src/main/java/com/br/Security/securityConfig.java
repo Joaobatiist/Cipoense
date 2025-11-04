@@ -39,11 +39,9 @@ public class securityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
 
-                        // ⭐️⭐️⭐️ INÍCIO DA CORREÇÃO ⭐️⭐️⭐️
-                        // Esta linha permite que o Spring Security aceite as requisições "preflight" (OPTIONS)
-                        // que o navegador envia antes do POST de login.
+
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // ⭐️⭐️⭐️ FIM DA CORREÇÃO ⭐️⭐️⭐️
+
 
                         // =================================================================
                         // 1. ENDPOINTS PÚBLICOS (Não precisam de token)
@@ -65,7 +63,7 @@ public class securityConfig {
                         .requestMatchers(HttpMethod.GET,"/api/atleta/profile/**").hasAuthority("ATLETA")
                         .requestMatchers(HttpMethod.POST, "/api/atleta/profile/photo" ).hasAuthority("ATLETA")
                         .requestMatchers(HttpMethod.POST,"/api/atleta/documents").hasAuthority("ATLETA")
-                        .requestMatchers(HttpMethod.DELETE,"/api/atleta/documents/{documentId}").hasAuthority("ATLETA")
+                        .requestMatchers(HttpMethod.DELETE,"/api/atleta/documents/**").hasAuthority("ATLETA")
                         // Catch-all para atleta (deve vir por último nas regras de atleta)
                         .requestMatchers("/api/atleta/**").hasAuthority("ATLETA")
 
@@ -76,14 +74,16 @@ public class securityConfig {
                         .requestMatchers(HttpMethod.DELETE,"/api/supervisor/atletas/deletar/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         .requestMatchers(HttpMethod.PUT,"/api/supervisor/atletas/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         .requestMatchers(HttpMethod.GET,"/api/supervisor/atletas/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.DELETE,"/api/supervisor/atletas/*/documento-pdf").hasAuthority("SUPERVISOR")
+                        .requestMatchers(HttpMethod.DELETE,"/api/supervisor/atletas/*/documento-pdf").hasAuthority("COORDENADOR")
                         .requestMatchers(HttpMethod.POST, "/api/supervisor/atletas/*/documento-pdf").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         .requestMatchers("/api/estoque/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers("/api/usuarios-para-comunicado").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers("/api/presenca/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.POST, "/api/comunicados", "/api/eventos", "/api/relatoriogeral/cadastrar", "/api/relatorios/tatico", "/api/relatorios/desempenho").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.PUT, "/api/comunicados/{id}", "/api/eventos/**", "/api/relatoriogeral/{id}", "/api/relatorios/tatico/atualizar", "/api/relatorios/desempenho/atualizar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
-                        .requestMatchers(HttpMethod.DELETE, "/api/comunicados/{id}", "/api/eventos/**", "/api/relatoriogeral/deletarporid/**", "/api/relatorios/tatico/deletar", "/api/relatorios/desempenho/deletar").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+                        .requestMatchers( "/api/presenca/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.GET, "api/presenca/evento/").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.POST, "/api/comunicados", "/api/eventos", "/api/relatoriogeral/cadastrar", "/api/relatorios/tatico", "/api/relatorios/desempenho").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/comunicados/**", "/api/eventos/**", "/api/relatoriogeral/**", "/api/relatorios/tatico/atualizar", "/api/relatorios/desempenho/atualizar").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/comunicados/**", "/api/eventos/**", "/api/relatoriogeral/deletarporid/**", "/api/relatorios/tatico/deletar", "/api/relatorios/desempenho/deletar").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
+                        .requestMatchers(HttpMethod.GET, "/api/por-titulo").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.POST, "/api/cadastro").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         .requestMatchers(HttpMethod.GET, "/api/atletas", "/api/atletas/listagem", "/api/atletas/subdivisoes").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.GET, "/api/funcionarios/listarfuncionarios").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
@@ -99,8 +99,8 @@ public class securityConfig {
                         // =================================================================
                         // 3. REGRAS PARA QUALQUER USUÁRIO AUTENTICADO
                         // =================================================================
-                        .requestMatchers(HttpMethod.GET, "/api/eventos", "/api/comunicados", "/api/comunicados/{id}").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/visualizar/{id}", "/api/relatoriogeral/buscarporid/{id}", "/api/relatorios/tatico/visualizar", "/api/relatorios/desempenho/visualizar").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/eventos/**", "/api/comunicados/**", "/api/comunicados/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/relatoriogeral/visualizar/**", "/api/relatoriogeral/buscarporid/**", "/api/relatorios/tatico/visualizar", "/api/relatorios/desempenho/visualizar").authenticated()
 
                         // =================================================================
                         // 4. REGRA FINAL (Catch-All)
@@ -129,7 +129,8 @@ public class securityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "https://adcipeonse.cloud",
                 "http://localhost:8081",
-                "http://192.1.4:8080" // Pode manter para testes na rede local
+                "http://192.1.4:8080",// Pode manter para testes na rede local
+                "http://localhost:8080"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*")); // Permite todos os cabeçalhos

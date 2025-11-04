@@ -14,7 +14,5 @@ public class comunicadoRequest {
 
     // Listas de IDs para cada tipo de destinatário
     private List<UUID> atletasIds;
-    private List<UUID> coordenadorIds;
-    private List<UUID> supervisorIds;
-    private List<UUID> tecnicoIds;
+    private List<UUID> funcionarioIds;
 }

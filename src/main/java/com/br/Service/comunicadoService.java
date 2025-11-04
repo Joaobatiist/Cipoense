@@ -22,43 +22,42 @@ public class comunicadoService {
 
     private final comunicadoRepository comunicadoRepository;
     private final atletaRepository atletaRepository;
-    private final coordenadorRepository coordenadorRepository;
-    private final supervisorRepository supervisorRepository;
-    private final tecnicoRepository tecnicoRepository;
     private final comunicadoStatusRepository comunicadoStatusPorUsuarioRepository;
+    private final funcionarioRepository funcionarioRepository; // Único repositório para funcionários
 
     @Autowired
-    public comunicadoService(comunicadoRepository comunicadoRepository, atletaRepository atletaRepository, coordenadorRepository coordenadorRepository, supervisorRepository supervisorRepository, tecnicoRepository tecnicoRepository, comunicadoStatusRepository comunicadoStatusPorUsuarioRepository) {
+    public comunicadoService(comunicadoRepository comunicadoRepository, atletaRepository atletaRepository, comunicadoStatusRepository comunicadoStatusPorUsuarioRepository, funcionarioRepository funcionarioRepository) {
         this.comunicadoRepository = comunicadoRepository;
         this.atletaRepository = atletaRepository;
-        this.coordenadorRepository = coordenadorRepository;
-        this.supervisorRepository = supervisorRepository;
-        this.tecnicoRepository = tecnicoRepository;
         this.comunicadoStatusPorUsuarioRepository = comunicadoStatusPorUsuarioRepository;
+        this.funcionarioRepository = funcionarioRepository;
     }
 
-    // ⭐ CORREÇÃO: Método reescrito para lidar corretamente com os papéis do Spring Security
+    // ⭐ ALTERAÇÃO 1: Método reescrito para lidar com os papéis unificados.
     protected Object getLoggedInUserEntity(String username, Set<GrantedAuthority> authorities) {
-        // Extrai o primeiro papel (role) do usuário, removendo o prefixo "ROLE_" se existir.
+        // Extrai o papel (role) do usuário.
         String userRole = authorities.stream()
                 .map(GrantedAuthority::getAuthority)
                 .map(auth -> auth.startsWith("ROLE_") ? auth.substring(5) : auth)
                 .findFirst()
                 .orElse("");
 
-        // Usa um switch para buscar no repositório correto. É mais limpo e eficiente.
-        switch (userRole) {
-            case "COORDENADOR":
-                return coordenadorRepository.findByEmail(username).orElse(null);
-            case "SUPERVISOR":
-                return supervisorRepository.findByEmail(username).orElse(null);
-            case "TECNICO":
-                return tecnicoRepository.findByEmail(username).orElse(null);
-            case "ATLETA":
-                return atletaRepository.findByEmail(username).orElse(null);
-            default:
-                // Se o papel não for nenhum dos esperados, retorna null.
-                return null;
+        // Verifica se o papel pertence à categoria Funcionario (COORDENADOR, SUPERVISOR, TECNICO)
+        if (userRole.equals(role.COORDENADOR.name()) ||
+                userRole.equals(role.SUPERVISOR.name()) ||
+                userRole.equals(role.TECNICO.name())) {
+
+            // Busca na tabela unificada de Funcionario
+            return funcionarioRepository.findByEmail(username).orElse(null);
+
+        } else if (userRole.equals(role.ATLETA.name())) {
+
+            // Busca na tabela de Atleta
+            return atletaRepository.findByEmail(username).orElse(null);
+
+        } else {
+            // Se o papel não for nenhum dos esperados, retorna null.
+            return null;
         }
     }
 
@@ -74,17 +73,13 @@ public class comunicadoService {
         Object loggedInUser = getLoggedInUserEntity(username, new HashSet<>(authentication.getAuthorities()));
 
         // Define o remetente
-        if (loggedInUser instanceof coordenador) {
-            comunicado.setRemetenteCoordenador((coordenador) loggedInUser);
-        } else if (loggedInUser instanceof supervisor) {
-            comunicado.setRemetenteSupervisor((supervisor) loggedInUser);
-        } else if (loggedInUser instanceof tecnico) {
-            comunicado.setRemetenteTecnico((tecnico) loggedInUser);
+        if (loggedInUser instanceof funcionario) {
+            comunicado.setRemetenteFuncionario((funcionario) loggedInUser);
         } else {
-            // ⭐ CORREÇÃO: Mensagem de erro melhorada para facilitar a depuração
+            // Se o remetente não for um funcionário, lança erro.
             String userType = (loggedInUser != null) ? loggedInUser.getClass().getSimpleName() : "null ou tipo desconhecido";
             String roles = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", "));
-            throw new RuntimeException("Usuário do tipo '" + userType + "' com papéis [" + roles + "] não foi encontrado em uma tabela válida ou não tem autorização para criar comunicados.");
+            throw new RuntimeException("Usuário do tipo '" + userType + "' com papéis [" + roles + "] não tem autorização para criar comunicados.");
         }
 
         List<Object> allDestinatarios = processarDestinatarios(comunicado, dto);
@@ -96,10 +91,6 @@ public class comunicadoService {
 
         return convertToDto(savedComunicado);
     }
-
-    // ... O restante dos seus métodos (atualizar, buscar, etc.) permanece o mesmo ...
-    // Cole o resto dos seus métodos aqui (atualizarComunicado, buscarTodosComunicados, etc.)
-    // A partir daqui, o código é o mesmo da sua versão anterior.
 
     private comunicadoResponse convertToDto(comunicado comunicado) {
         comunicadoResponse dto = new comunicadoResponse();
@@ -117,35 +108,35 @@ public class comunicadoService {
                     destinatarios.add(new comunicadoResponse.DestinatarioDTO(atleta.getId(), atleta.getNome(), role.ATLETA.name()))
             );
         }
-        if (comunicado.getDestinatariosCoordenadores() != null) {
-            comunicado.getDestinatariosCoordenadores().forEach(coord ->
-                    destinatarios.add(new comunicadoResponse.DestinatarioDTO(coord.getId(), coord.getNome(), role.COORDENADOR.name()))
-            );
-        }
-        if (comunicado.getDestinatariosSupervisores() != null) {
-            comunicado.getDestinatariosSupervisores().forEach(superv ->
-                    destinatarios.add(new comunicadoResponse.DestinatarioDTO(superv.getId(), superv.getNome(), role.SUPERVISOR.name()))
-            );
-        }
-        if (comunicado.getDestinatariosTecnicos() != null) {
-            comunicado.getDestinatariosTecnicos().forEach(tec ->
-                    destinatarios.add(new comunicadoResponse.DestinatarioDTO(tec.getId(), tec.getNome(), role.TECNICO.name()))
-            );
+
+        if (comunicado.getDestinatariosFuncionarios() != null) {
+            comunicado.getDestinatariosFuncionarios().forEach(funcionario -> {
+                // Usa a Role específica do funcionário (COORDENADOR, SUPERVISOR, TECNICO)
+                String cargoDoFuncionario = funcionario.getRole().name();
+                destinatarios.add(new comunicadoResponse.DestinatarioDTO(
+                        funcionario.getId(),
+                        funcionario.getNome(),
+                        cargoDoFuncionario
+                ));
+            });
         }
         dto.setDestinatarios(destinatarios);
 
-        if (comunicado.getRemetenteCoordenador() != null) {
-            coordenador remetente = comunicado.getRemetenteCoordenador();
-            dto.setRemetente(new comunicadoResponse.DestinatarioDTO(remetente.getId(), remetente.getNome(), role.COORDENADOR.name()));
-        } else if (comunicado.getRemetenteSupervisor() != null) {
-            supervisor remetente = comunicado.getRemetenteSupervisor();
-            dto.setRemetente(new comunicadoResponse.DestinatarioDTO(remetente.getId(), remetente.getNome(), role.SUPERVISOR.name()));
-        } else if (comunicado.getRemetenteTecnico() != null) {
-            tecnico remetente = comunicado.getRemetenteTecnico();
-            dto.setRemetente(new comunicadoResponse.DestinatarioDTO(remetente.getId(), remetente.getNome(), role.TECNICO.name()));
+        // Remetente funcionario (UNIFICADO)
+        if (comunicado.getRemetenteFuncionario() != null) {
+            funcionario remetente = comunicado.getRemetenteFuncionario();
+            // Usa a Role específica do remetente
+            String cargoDoFuncionario = remetente.getRole().name();
+
+            dto.setRemetente(new comunicadoResponse.DestinatarioDTO(
+                    remetente.getId(),
+                    remetente.getNome(),
+                    cargoDoFuncionario
+            ));
         }
         return dto;
     }
+
 
     @Transactional
     public comunicadoResponse atualizarComunicado(UUID id, comunicadoRequest dto) {
@@ -155,13 +146,23 @@ public class comunicadoService {
         comunicado.setAssunto(dto.getAssunto());
         comunicado.setMensagem(dto.getMensagem());
         comunicado.setData(dto.getData() != null ? dto.getData() : comunicado.getData());
+
+        // Limpar destinatários antes de adicionar os novos
         comunicado.getDestinatariosAtletas().clear();
-        comunicado.getDestinatariosCoordenadores().clear();
-        comunicado.getDestinatariosSupervisores().clear();
-        comunicado.getDestinatariosTecnicos().clear();
+        comunicado.getDestinatariosFuncionarios().clear();
+
+        // Recria os status (idealmente, deveria-se buscar e atualizar os existentes, mas seguindo a lógica original de processamento)
         List<Object> allNewDestinatarios = processarDestinatarios(comunicado, dto);
+
+        // Apaga os status antigos e cria novos para os destinatários atualizados
+        comunicadoStatusPorUsuarioRepository.deleteAll(comunicadoStatusPorUsuarioRepository.findByComunicado(comunicado));
+
         comunicado updatedComunicado = comunicadoRepository.save(comunicado);
-        // Lógica de status...
+
+        for (Object dest : allNewDestinatarios) {
+            criarOuAtualizarStatus(updatedComunicado, dest, false);
+        }
+
         return convertToDto(updatedComunicado);
     }
 
@@ -177,20 +178,25 @@ public class comunicadoService {
             return Collections.emptyList();
         }
 
+        // Se for ADMIN, busca todos
         if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
             comunicadosDoUsuario.addAll(comunicadoRepository.findAllWithAllDetails());
         } else {
             UUID loggedInUserId = getUserId(loggedInUser);
             if(loggedInUserId == null) return Collections.emptyList();
 
-            if (loggedInUser instanceof coordenador) comunicadosDoUsuario.addAll(comunicadoRepository.findByRemetenteCoordenadorWithDetails((coordenador) loggedInUser));
-            else if (loggedInUser instanceof supervisor) comunicadosDoUsuario.addAll(comunicadoRepository.findByRemetenteSupervisorWithDetails((supervisor) loggedInUser));
-            else if (loggedInUser instanceof tecnico) comunicadosDoUsuario.addAll(comunicadoRepository.findByRemetenteTecnicoWithDetails((tecnico) loggedInUser));
+            // Busca comunicados enviados pelo usuário (se for um funcionário)
+            if (loggedInUser instanceof funcionario) {
+                comunicadosDoUsuario.addAll(comunicadoRepository.findByRemetenteFuncionarioWithDetails((funcionario) loggedInUser));
+            }
 
-            if (loggedInUser instanceof atleta) comunicadosDoUsuario.addAll(comunicadoRepository.findComunicadosByDestinatarioAtletaIdAndNotOcultado(loggedInUserId));
-            else if (loggedInUser instanceof coordenador) comunicadosDoUsuario.addAll(comunicadoRepository.findComunicadosByDestinatarioCoordenadorIdAndNotOcultado(loggedInUserId));
-            else if (loggedInUser instanceof supervisor) comunicadosDoUsuario.addAll(comunicadoRepository.findComunicadosByDestinatarioSupervisorIdAndNotOcultado(loggedInUserId));
-            else if (loggedInUser instanceof tecnico) comunicadosDoUsuario.addAll(comunicadoRepository.findComunicadosByDestinatarioTecnicoIdAndNotOcultado(loggedInUserId));
+            // Busca comunicados onde o usuário é destinatário
+            if (loggedInUser instanceof atleta) {
+                comunicadosDoUsuario.addAll(comunicadoRepository.findComunicadosByDestinatarioAtletaIdAndNotOcultado(loggedInUserId));
+            } else if (loggedInUser instanceof funcionario) {
+                // ⭐ ALTERAÇÃO 2: Busca unificada para todos os funcionários (Coordenador, Supervisor, Tecnico)
+                comunicadosDoUsuario.addAll(comunicadoRepository.findComunicadosByDestinatarioFuncionarioIdAndNotOcultado(loggedInUserId));
+            }
         }
 
         return comunicadosDoUsuario.stream()
@@ -226,39 +232,35 @@ public class comunicadoService {
             atletas.forEach(comunicado::addDestinatarioAtleta);
             allDestinatarios.addAll(atletas);
         }
-        if (dto.getCoordenadorIds() != null && !dto.getCoordenadorIds().isEmpty()) {
-            List<coordenador> coordenadores = coordenadorRepository.findAllById(dto.getCoordenadorIds());
-            coordenadores.forEach(comunicado::addDestinatarioCoordenador);
-            allDestinatarios.addAll(coordenadores);
-        }
-        if (dto.getSupervisorIds() != null && !dto.getSupervisorIds().isEmpty()) {
-            List<supervisor> supervisores = supervisorRepository.findAllById(dto.getSupervisorIds());
-            supervisores.forEach(comunicado::addDestinatarioSupervisor);
-            allDestinatarios.addAll(supervisores);
-        }
-        if (dto.getTecnicoIds() != null && !dto.getTecnicoIds().isEmpty()) {
-            List<tecnico> tecnicos = tecnicoRepository.findAllById(dto.getTecnicoIds());
-            tecnicos.forEach(comunicado::addDestinatarioTecnico);
-            allDestinatarios.addAll(tecnicos);
+        if (dto.getFuncionarioIds() != null && !dto.getFuncionarioIds().isEmpty()) {
+            List<funcionario> funcionarios = funcionarioRepository.findAllById(dto.getFuncionarioIds());
+            funcionarios.forEach(comunicado::addDestinatarioFuncionario);
+            allDestinatarios.addAll(funcionarios);
         }
         return allDestinatarios;
     }
 
+    // ⭐ ALTERAÇÃO 3: Método getUserId unificado.
     private UUID getUserId(Object userEntity) {
         if (userEntity instanceof atleta) return ((atleta) userEntity).getId();
-        if (userEntity instanceof coordenador) return ((coordenador) userEntity).getId();
-        if (userEntity instanceof supervisor) return ((supervisor) userEntity).getId();
-        if (userEntity instanceof tecnico) return ((tecnico) userEntity).getId();
+        // Checagem única para todos os funcionários
+        if (userEntity instanceof funcionario) return ((funcionario) userEntity).getId();
         return null;
     }
 
+    // ⭐ ALTERAÇÃO 4: Método criarOuAtualizarStatus unificado.
     private void criarOuAtualizarStatus(comunicado c, Object dest, boolean ocultado) {
         comunicadoStatus status = new comunicadoStatus();
         status.setComunicado(c);
-        if (dest instanceof atleta) status.setAtleta((atleta) dest);
-        else if (dest instanceof coordenador) status.setCoordenador((coordenador) dest);
-        else if (dest instanceof supervisor) status.setSupervisor((supervisor) dest);
-        else if (dest instanceof tecnico) status.setTecnico((tecnico) dest);
+
+        if (dest instanceof atleta) {
+            status.setAtleta((atleta) dest);
+        } else if (dest instanceof funcionario) {
+            // Usa o relacionamento único para Funcionario
+            status.setFuncionario((funcionario) dest);
+        }
+        // Removida a lógica de else if (dest instanceof coordenador), supervisor, tecnico.
+
         status.setOcultado(ocultado);
         comunicadoStatusPorUsuarioRepository.save(status);
     }
