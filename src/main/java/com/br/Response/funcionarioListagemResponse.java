@@ -20,7 +20,7 @@ public class funcionarioListagemResponse {
     private LocalDate dataNascimento;
     private String cpf;
     private String telefone;
-    private role roles;
+    private role role;
     private String uniqueId;
 
     public funcionarioListagemResponse(String uniqueId, UUID id, String nome, String cpf, LocalDate dataNascimento, String email, role roles, String telefone) {
@@ -29,7 +29,7 @@ public class funcionarioListagemResponse {
         this.cpf = cpf;
         this.dataNascimento = dataNascimento;
         this.email = email;
-        this.roles = roles;
+        this.role = roles;
         this.telefone = telefone;
         this.uniqueId = roles + "_" + id;
 

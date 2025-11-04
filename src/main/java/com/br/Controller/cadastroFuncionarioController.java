@@ -1,17 +1,12 @@
-
 package com.br.Controller;
 
-import com.br.Entity.coordenador;
-import com.br.Entity.Super; // A superclasse comum
-import com.br.Entity.supervisor;
-import com.br.Entity.tecnico;
+import com.br.Entity.funcionario; // A única entidade necessária
 import com.br.Service.cadastroFuncionariosService; // Seu serviço de cadastro
-import com.fasterxml.jackson.databind.ObjectMapper; // Importe ObjectMapper
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired; // Para injeção de dependências
-import org.springframework.web.server.ResponseStatusException; // Para lançar exceções HTTP
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,48 +14,34 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/cadastro")
-@CrossOrigin("http://192.168.0.10:8081")// Endpoint unificado para cadastro de funcionários
+@CrossOrigin("http://192.168.0.10:8081") // Endpoint unificado para cadastro de funcionários
 public class cadastroFuncionarioController {
 
     private final cadastroFuncionariosService cadastroFuncionariosService;
-    private final ObjectMapper objectMapper; // Para converter o objeto genérico para o tipo específico
+    // O ObjectMapper não é mais necessário, pois não há conversão entre subclasses
 
     @Autowired
-    public cadastroFuncionarioController(cadastroFuncionariosService cadastroFuncionariosService,
-                                         ObjectMapper objectMapper) {
+    public cadastroFuncionarioController(cadastroFuncionariosService cadastroFuncionariosService) {
         this.cadastroFuncionariosService = cadastroFuncionariosService;
-        this.objectMapper = objectMapper;
     }
 
     @PostMapping("/funcionarios")
-    public ResponseEntity<?> cadastrarFuncionario(@RequestBody Super funcionarioGenerico) {
-        if (funcionarioGenerico.getRoles() == null) {
+    public ResponseEntity<?> cadastrarFuncionario(@RequestBody funcionario novoFuncionario) {
+        // Assume que a entidade 'funcionario' tem o método getRoles() para obter o Enum.
+        if (novoFuncionario.getRole() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O campo 'roles' é obrigatório.");
         }
 
         try {
-            // Usa o 'roles' do JSON para determinar qual subclasse criar
-            switch (funcionarioGenerico.getRoles()) {
-                case TECNICO:
-                    // Converte o JSON genérico para um objeto Tecnico
-                    tecnico tecnico = objectMapper.convertValue(funcionarioGenerico, tecnico.class);
-                    tecnico savedTecnico = cadastroFuncionariosService.cadastrarTecnico(tecnico);
-                    return new ResponseEntity<>(savedTecnico, HttpStatus.CREATED);
-                case SUPERVISOR:
-                    // Converte o JSON genérico para um objeto Supervisor
-                    supervisor supervisor = objectMapper.convertValue(funcionarioGenerico, supervisor.class);
-                    supervisor savedSupervisor = cadastroFuncionariosService.cadastrarSupervisor(supervisor);
-                    return new ResponseEntity<>(savedSupervisor, HttpStatus.CREATED);
-                case COORDENADOR:
-                    // Converte o JSON genérico para um objeto Coordenador
-                    coordenador coordenador = objectMapper.convertValue(funcionarioGenerico, coordenador.class);
-                    coordenador savedCoordenador = cadastroFuncionariosService.cadastrarCoordenador(coordenador);
-                    return new ResponseEntity<>(savedCoordenador, HttpStatus.CREATED);
-                default:
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cargo de funcionário inválido: " + funcionarioGenerico.getRoles());
-            }
+            // Não é mais necessário usar o switch/ObjectMapper, pois a única entidade é Funcionario.
+            // O serviço deve validar a role e salvar.
+            funcionario savedFuncionario = cadastroFuncionariosService.cadastrar(novoFuncionario);
+
+            // Retorna a entidade Funcionario salva
+            return new ResponseEntity<>(savedFuncionario, HttpStatus.CREATED);
+
         } catch (IllegalArgumentException e) {
-            // Captura exceções lançadas pelo serviço (ex: senha obrigatória)
+            // Captura exceções lançadas pelo serviço (ex: role inválida, senha obrigatória)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
             // Captura outras exceções inesperadas

@@ -1,9 +1,8 @@
 package com.br.Controller;
 
 import com.br.Repository.atletaRepository;
-import com.br.Repository.coordenadorRepository;
-import com.br.Repository.supervisorRepository;
-import com.br.Repository.tecnicoRepository;
+import com.br.Repository.funcionarioRepository; // Novo e único repositório para funcionários
+import com.br.Entity.funcionario; // Importação da entidade Funcionario
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,20 +17,18 @@ import java.util.UUID;
 @RequestMapping("/api") // O request mapping base para este controller
 public class usuarioController {
 
+    // Apenas os repositórios necessários: Atleta e Funcionario (unificado)
     @Autowired
     private atletaRepository atletaRepository;
     @Autowired
-    private coordenadorRepository coordenadorRepository;
-    @Autowired
-    private supervisorRepository supervisorRepository;
-    @Autowired
-    private tecnicoRepository tecnicoRepository;
+    private funcionarioRepository funcionarioRepository;
 
 
+    // Classe de resposta inalterada
     public static class UserForSelection {
         public UUID id;
         public String nome;
-        public String tipo; // Para diferenciar Aluno, Coordenador, Supervisor, Tecnico
+        public String tipo; // Para diferenciar Atleta, Coordenador, Supervisor, Tecnico
 
         public UserForSelection(UUID id, String nome, String tipo) {
             this.id = id;
@@ -39,7 +36,7 @@ public class usuarioController {
             this.tipo = tipo;
         }
 
-        // Getters para serialização JSON (Lombok @Data faria isso automaticamente)
+        // Getters para serialização JSON
         public UUID getId() { return id; }
         public String getNome() { return nome; }
         public String getTipo() { return tipo; }
@@ -49,14 +46,13 @@ public class usuarioController {
     public ResponseEntity<List<UserForSelection>> getUsuariosForComunicado() {
         List<UserForSelection> users = new ArrayList<>();
 
-        // Adiciona Alunos
+        // 1. Adiciona Atletas
         atletaRepository.findAll().forEach(a -> users.add(new UserForSelection(a.getId(), a.getNome(), "Atleta")));
-        // Adiciona Coordenadores
-        coordenadorRepository.findAll().forEach(c -> users.add(new UserForSelection(c.getId(), c.getNome(), "Coordenador")));
-        // Adiciona Supervisores
-        supervisorRepository.findAll().forEach(s -> users.add(new UserForSelection(s.getId(), s.getNome(), "Supervisor")));
-        // Adiciona Técnicos
-        tecnicoRepository.findAll().forEach(t -> users.add(new UserForSelection(t.getId(), t.getNome(), "Tecnico")));
+
+        // 2. Adiciona Funcionários (Unificado)
+        funcionarioRepository.findAll().forEach(f ->
+                users.add(new UserForSelection(f.getId(), f.getNome(), f.getRole().name()))
+        );
 
         return ResponseEntity.ok(users);
     }

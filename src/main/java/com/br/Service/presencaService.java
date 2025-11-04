@@ -1,6 +1,7 @@
 package com.br.Service;
 
 import com.br.Entity.atleta;
+import com.br.Entity.eventos;
 import com.br.Entity.presenca;
 import com.br.Repository.atletaRepository;
 import com.br.Repository.presencaRepository;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate; // Importe LocalDate
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,14 +56,34 @@ public class presencaService {
             }
         }
     }
+    public List<eventos> buscarEventosAtletasEscalados(UUID atletaId) {
 
+        // Busca todos os registros onde o atleta está presente na Lista de Presença.
+        List<presenca> listaEscalada = presencaRepository
+                .findByAtletaId(atletaId);
+
+        return listaEscalada.stream()
+                .map(presenca::getEvento)
+                .collect(Collectors.toList());
+    }
+
+    public presenca atualizarPresenca(UUID presencaId,presenca presenca){
+        Optional<presenca> presencaExistente = presencaRepository.findById(presenca.getId());
+        presenca presencaAtual = presencaExistente.get();
+        presencaAtual.setData(presenca.getData());
+        presencaAtual.setPresente(presenca.getPresente());
+        presencaRepository.save(presencaAtual);
+        return presencaAtual;
+    }
 
    public List<presencaResponse> getLista() {
         List <presenca> lista = presencaRepository.findAll();
 
         return lista.stream().map(presenca -> new presencaResponse(presenca.getId(),
-                presenca.getAtleta().getNome(),
-                presenca.getPresente()))
+                        presenca.getAtleta().getNome(),
+                        presenca.getPresente(),
+                        presenca.getEvento().getId(),
+                        presenca.getEvento().getDescricao()))
                 .collect(Collectors.toList());
    }
     public List<historicoPresencaResponse> getHistoricoPresencas() {
@@ -93,13 +115,12 @@ public class presencaService {
                     .findFirst();
 
             return new presencaResponse(
-                    atleta.getId(),
+                    presenca.isPresent() ? presenca.get().getId() : null,
                     atleta.getNome(),
-                    presenca.isPresent() ? presenca.get().getPresente() : null
+                    presenca.isPresent() ? presenca.get().getPresente() : null,
+                    presenca.isPresent() && presenca.get().getEvento() != null ? presenca.get().getEvento().getId() : null,
+                    presenca.isPresent() && presenca.get().getEvento() != null ? presenca.get().getEvento().getDescricao() : null
             );
         }).collect(Collectors.toList());
     }
-
-
-
 }

@@ -2,7 +2,6 @@ package com.br.Entity;
 
 import com.br.Enums.role;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 import java.time.LocalDate;
@@ -20,8 +19,9 @@ import org.hibernate.annotations.UuidGenerator;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@MappedSuperclass
-public class Super {
+@Entity
+@Table (name = "funcionario")
+public class funcionario {
     @Id
     @UuidGenerator
     @GeneratedValue
@@ -36,7 +36,7 @@ public class Super {
     @Column(unique = true)
     private String telefone;
     @Enumerated(EnumType.STRING)
-    private role roles;
+    private role role;
     @Transient
     private String userType;
 

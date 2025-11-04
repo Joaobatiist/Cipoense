@@ -22,9 +22,14 @@ public class presenca {
     @UuidGenerator
     @GeneratedValue
     private UUID id;
+
     @ManyToOne
     @JoinColumn(name = "atleta_id", nullable = false)
     private atleta atleta;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "evento_id", nullable = false)
+    private eventos evento;
 
     @Column(nullable = false)
     private Boolean presente;

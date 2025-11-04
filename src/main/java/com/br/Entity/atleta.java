@@ -4,6 +4,7 @@ package com.br.Entity;
 import com.br.Enums.posicao;
 import com.br.Enums.role;
 import com.br.Enums.subDivisao;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -35,6 +36,7 @@ public class atleta {
     @Column(name="matricula", nullable = false, unique = true)
     private Integer matricula;
 
+    //Informações Pessoais Essenciais
     @Column(name="nome", nullable = false)
     private String nome;
 
@@ -43,15 +45,6 @@ public class atleta {
 
     @Column(name="email", nullable = false, unique = true)
     private String email;
-
-    @Column(name = "isencao", nullable = true)
-    private boolean isencao;
-
-    @Enumerated(EnumType.STRING)
-    private posicao posicao;
-
-    @Enumerated(EnumType.STRING)
-    private subDivisao subDivisao;
 
     @Enumerated(EnumType.STRING)
     private role roles;
@@ -62,10 +55,50 @@ public class atleta {
     @Column(name = "cpf", nullable = true, unique = true)
     private String cpf;
 
+    @Column(name = "RG", nullable = true, unique = true)
+    private String rg;
+
+    @Column(name = "endereço")
+    private String endereco;
+
+    //Saúde e caracteristicas
+
     @Column(name = "massa", nullable = false)
     private double massa;
 
-    // ALTERAÇÃO: Mudança de byte[] para String (Base64)
+    @Column(name = "altura", nullable = false)
+    private double altura;
+
+    @Column(name = "tipoSanguineo")
+    private String tipoSanguineo;
+
+    @Column(name = "alergias")
+    private String alergias;
+
+    @Column(name = "problemaDeSaude")
+    private String problemaDeSaude;
+
+    //Escola
+    @Column(name = "horarioDeAula")
+    private String horarioDeAula;
+
+    @Column(name = "escola")
+    private String escola;
+
+    @Column(name = "contatoEscola")
+    private String contatoEscola;
+
+    @Column(name = "anoEscolar")
+    private Integer anoEscolar;
+
+    //Informações Cadastrais Organizacionais
+
+    @Enumerated(EnumType.STRING)
+    private posicao posicao;
+
+    @Enumerated(EnumType.STRING)
+    private subDivisao subDivisao;
+
     @Column(name = "foto", columnDefinition = "TEXT")
     private String foto;
 
@@ -75,6 +108,13 @@ public class atleta {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "responsavel_id")
     private responsavel responsavel;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, optional = true)
+    @JoinColumn(name= "responsavel2_id")
+    private responsavel responsavel2;
+
+    @Column(name = "isencao", nullable = true)
+    private boolean isencao;
 
     @OneToMany(mappedBy = "atleta", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<documentoAtleta> documentos = new HashSet<>();
@@ -92,6 +132,9 @@ public class atleta {
     @Column(name = "documento_pdf_content_type")
     private String documentoPdfContentType;
 
+    @ManyToMany(mappedBy = "atletasEscalados")
+    private Set<eventos> eventos = new HashSet<>();
+
     @OneToMany(mappedBy = "atleta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<presenca> presencas;
 
@@ -100,5 +143,14 @@ public class atleta {
             return Period.between(this.dataNascimento, LocalDate.now()).getYears();
         }
         return 0;
+    }
+
+
+    public Set<eventos> getEventos() {
+        return eventos;
+    }
+
+    public void setEventos(Set<eventos> eventos) {
+        this.eventos = eventos;
     }
 }

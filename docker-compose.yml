@@ -4,7 +4,7 @@ services:
     container_name: cipoense-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: "@Joaosurf1"
+      MYSQL_ROOT_PASSWORD: "My@123sql#"
       MYSQL_DATABASE: cipoense
 
     ports:

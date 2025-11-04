@@ -1,11 +1,8 @@
 package com.br.Security;
 
-import com.br.Repository.supervisorRepository;
-import com.br.Repository.coordenadorRepository;
-import com.br.Repository.tecnicoRepository;
 import com.br.Repository.atletaRepository;
-
-import com.br.Entity.Super;
+import com.br.Repository.funcionarioRepository; // Novo e único Repository para Funcionario
+import com.br.Entity.funcionario;
 import com.br.Entity.atleta;
 import com.br.Enums.role;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,72 +16,69 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Service
 public class userDetailsServiceImpl implements UserDetailsService {
 
-    private final supervisorRepository supervisorRepository;
-    private final coordenadorRepository coordenadorRepository;
-    private final tecnicoRepository tecnicoRepository;
+    private final funcionarioRepository funcionarioRepository; // Apenas o Repositório unificado
     private final atletaRepository atletaRepository;
 
-    public userDetailsServiceImpl(supervisorRepository supervisorRepository,
-                                  coordenadorRepository coordenadorRepository,
-                                  tecnicoRepository tecnicoRepository,
+    public userDetailsServiceImpl(funcionarioRepository funcionarioRepository,
                                   atletaRepository atletaRepository) {
-        this.supervisorRepository = supervisorRepository;
-        this.coordenadorRepository = coordenadorRepository;
-        this.tecnicoRepository = tecnicoRepository;
+        this.funcionarioRepository = funcionarioRepository;
         this.atletaRepository = atletaRepository;
     }
+
+    // -------------------------------------------------------------------------
+    // Método principal de carregamento de usuário
+    // -------------------------------------------------------------------------
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        Optional<? extends Super> foundSuperUser = Stream.of(
-                        supervisorRepository.findByEmail(email),
-                        coordenadorRepository.findByEmail(email),
-                        tecnicoRepository.findByEmail(email)
-                )
-                .flatMap(Optional::stream)
-                .findFirst();
+        // 1. Tenta encontrar o usuário na tabela unificada de Funcionarios
+        Optional<funcionario> foundFuncionario = funcionarioRepository.findByEmail(email);
 
-        if (foundSuperUser.isPresent()) {
-            Super user = foundSuperUser.get();
-            // Retorna CustomUserDetails com as roles sem o prefixo "ROLE_"
+        if (foundFuncionario.isPresent()) {
+            funcionario user = foundFuncionario.get();
+            // Retorna CustomUserDetails com a role, que será COORDENADOR, SUPERVISOR ou TECNICO
             return new customUserDetails(
                     user.getId(),
                     user.getEmail(),
                     user.getSenha(),
-                    getAuthorities(user.getRoles()), // Retorna autoridades como "SUPERVISOR"
-                    user.getRoles().name(),
+                    getAuthorities(user.getRole()), // Usa a Role específica armazenada na entidade Funcionario
+                    user.getRole().name(),
                     user.getNome()
             );
         }
 
+        // 2. Se não for encontrado como Funcionario, tenta encontrar como Atleta
         Optional<atleta> foundAtleta = atletaRepository.findByEmail(email);
         if (foundAtleta.isPresent()) {
             atleta atleta = foundAtleta.get();
-            // Retorna CustomUserDetails com as roles sem o prefixo "ROLE_"
+            // Retorna CustomUserDetails
             return new customUserDetails(
                     atleta.getId(),
                     atleta.getEmail(),
                     atleta.getSenha(),
-                    getAuthorities(atleta.getRoles()), // Retorna autoridades como "ATLETA"
+                    getAuthorities(atleta.getRoles()),
                     atleta.getRoles().name(),
                     atleta.getNome()
             );
         }
 
+        // 3. Se não for encontrado em nenhuma tabela
         throw new UsernameNotFoundException("Usuário não encontrado com o email: " + email);
     }
+
+    // -------------------------------------------------------------------------
+    // Método auxiliar (inalterado)
+    // -------------------------------------------------------------------------
 
     private Collection<? extends GrantedAuthority> getAuthorities(role role) {
         if (role == null) {
             return Collections.emptyList();
         }
-        // Cria SimpleGrantedAuthority usando o nome da autoridade sem o prefixo "ROLE_"
         return Collections.singletonList(new SimpleGrantedAuthority(role.getAuthorityName()));
     }
 }

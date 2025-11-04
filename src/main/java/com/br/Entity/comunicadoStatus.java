@@ -25,38 +25,44 @@ public class comunicadoStatus {
     @JoinColumn(name = "comunicado_id", nullable = false)
     private comunicado comunicado;
 
-    // Relacionamentos para os tipos de usuário (apenas um deve ser preenchido)
+    // Relacionamento 1/2: Para Atletas
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "atleta_id")
     private atleta atleta;
 
+    // Relacionamento 2/2: PARA TODOS OS FUNCIONÁRIOS (Unificado)
+    // Este campo substitui coordenador, supervisor e tecnico
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "coordenador_id")
-    private coordenador coordenador;
+    @JoinColumn(name = "funcionario_id") // Defina explicitamente o nome da coluna para clareza
+    private funcionario funcionario;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "supervisor_id")
-    private supervisor supervisor;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tecnico_id")
-    private tecnico tecnico;
+    // Os campos removidos eram:
+    // private coordenador coordenador;
+    // private supervisor supervisor;
+    // private tecnico tecnico;
 
     @Column(nullable = false)
     private boolean ocultado = false; // Indica se o usuário "excluiu" da sua sessão
 
-    // Métodos para verificar o tipo de usuário associado
-    public boolean isForAtleta() { return this.atleta != null; }
-    public boolean isForCoordenador() { return this.coordenador != null; }
-    public boolean isForSupervisor() { return this.supervisor != null; }
-    public boolean isForTecnico() { return this.tecnico != null; }
+    // -------------------------------------------------------------------------
+    // Métodos Auxiliares Atualizados
+    // -------------------------------------------------------------------------
 
-    // Método auxiliar para obter o ID do usuário relacionado (para conveniência)
+    // Indica se é um atleta
+    public boolean isForAtleta() { return this.atleta != null; }
+
+    public boolean isForFuncionario() { return this.funcionario != null; }
+
     public UUID getAssociatedUserId() {
         if (atleta != null) return atleta.getId();
-        if (coordenador != null) return coordenador.getId();
-        if (supervisor != null) return supervisor.getId();
-        if (tecnico != null) return tecnico.getId();
+        if (funcionario != null) return funcionario.getId();
+        return null;
+    }
+
+    public String getAssociatedUserRole() {
+        if (atleta != null) return "ATLETA";
+        // Retorna a Role real (COORDENADOR, SUPERVISOR, TECNICO) que está no objeto Funcionario
+        if (funcionario != null) return funcionario.getRole().name();
         return null;
     }
 }
