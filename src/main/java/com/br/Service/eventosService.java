@@ -8,8 +8,9 @@ import com.br.Repository.eventosRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.util.List; // Add import for List
-import java.util.Optional; // Add import for Optional
+import java.util.List;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -24,7 +25,20 @@ public class eventosService {
 
     @Transactional
     public eventos cadastrarEvento(eventos eventos){
-        return eventosRepository.save(eventos);
+        try {
+            System.out.println("DEBUG: Tentando salvar evento: " + eventos.getDescricao());
+            System.out.println("DEBUG: Data: " + eventos.getData());
+            System.out.println("DEBUG: SubDivisão: " + eventos.getSubDivisao());
+
+            eventos eventoSalvo = eventosRepository.save(eventos);
+
+            System.out.println("DEBUG: Evento salvo com ID: " + eventoSalvo.getId());
+            return eventoSalvo;
+        } catch (Exception e) {
+            System.err.println("ERRO no Service ao salvar evento: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     //===============================================================================================
@@ -43,7 +57,8 @@ public class eventosService {
         atleta atleta = atletaRepository.findByEmail(emailAtleta)
                 .orElseThrow(() -> new RuntimeException("Atleta não encontrado com o email: " + emailAtleta));
 
-        return eventosRepository.findEventosByAtletaVisibility(atleta.getId()); // Assumindo que getId() retorna o UUID
+        // Assumindo que findEventosByAtletaVisibility está implementado no eventosRepository
+        return eventosRepository.findEventosByAtletaVisibility(atleta.getId());
     }
 
     // ====================================================================================
@@ -59,6 +74,7 @@ public class eventosService {
             existingEvent.setProfessor(eventoAtualizado.getProfessor());
             existingEvent.setLocal(eventoAtualizado.getLocal());
             existingEvent.setHorario(eventoAtualizado.getHorario());
+            // O Hibernate cuida dos DELETEs e INSERTs aqui
             existingEvent.setAtletasEscalados(eventoAtualizado.getAtletasEscalados());
             return eventosRepository.save(existingEvent); // Save updated event
         } else {
@@ -85,7 +101,8 @@ public class eventosService {
         return atletaRepository.findAllBySubDivisao(divisao);
     }
 
-    //Métodos para escalação do Atleta
+    //===============================================================================================
+    // MÉTODOS DE ESCALAÇÃO CORRIGIDOS (Apenas Manipulação do Lado Proprietário)
 
     @Transactional
     public eventos escalarAtleta(UUID eventoId, UUID atletaId) {
@@ -95,15 +112,14 @@ public class eventosService {
         atleta atleta = atletaRepository.findById(atletaId)
                 .orElseThrow(() -> new RuntimeException("Atleta não encontrado com o ID: " + atletaId));
 
-        // Adiciona o atleta ao evento
+        // Adiciona o atleta ao evento (Lado Proprietário)
+        // REMOVIDA toda a lógica de manipulação do lado 'atleta' e o save(atleta).
         evento.getAtletasEscalados().add(atleta);
-
-        // Garante consistência bidirecional — adicione este método na entidade atleta (explico abaixo)
-        atleta.getEventos().add(evento);
 
         System.out.println("Evento ID: " + evento.getId());
         System.out.println("Atleta ID: " + atleta.getId());
-        // Força o Hibernate a gerar o INSERT na tabela intermediária imediatamente
+
+        // saveAndFlush garante que a operação ocorra imediatamente na tabela de junção.
         return eventosRepository.saveAndFlush(evento);
     }
 
@@ -115,8 +131,10 @@ public class eventosService {
         atleta atleta = atletaRepository.findById(atletaId)
                 .orElseThrow(() -> new RuntimeException("Atleta não encontrado com o ID: " + atletaId));
 
+        // Remove do lado proprietário
         evento.getAtletasEscalados().remove(atleta);
 
+        // Nenhuma manipulação do lado inverso ou save é necessária.
         return eventosRepository.save(evento);
     }
 }

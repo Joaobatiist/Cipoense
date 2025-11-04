@@ -13,9 +13,11 @@ import java.util.UUID;
 public interface presencaRepository extends JpaRepository <presenca, UUID>{
     void deleteByAtleta(atleta atleta);
 
-    Optional<presenca> findByAtletaAndData(atleta atleta, LocalDate data);
+
     List<presenca> findByData(LocalDate data);
-    List<presenca> findByAtletaId(UUID atleta);
-    Optional<presenca> findByAtletaAndEventoAndData(atleta atleta, eventos evento, LocalDate data);
+    Optional<presenca> findByAtletaAndData(atleta atleta, LocalDate data);
+    Optional<presenca> findByAtletaAndEvento(atleta atleta, eventos evento);
+    List<presenca> findByEvento(eventos evento);
+    List<presenca> findByAtletaId(UUID atletaId);
 
 }

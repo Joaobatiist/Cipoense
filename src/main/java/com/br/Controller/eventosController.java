@@ -4,6 +4,7 @@ import com.br.Entity.atleta;
 import com.br.Entity.eventos;
 import com.br.Service.eventosService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication; // Para verificar o perfil
@@ -27,7 +28,7 @@ public class eventosController { // Nome da classe original mantido
 
     // --- 1. CRUD BÁSICO ---
 
-    @PostMapping("/eventos")
+    @PostMapping(value = "/eventos", consumes = MediaType.APPLICATION_JSON_VALUE) // <-- CORREÇÃO: Garante que aceita JSON
     public ResponseEntity<eventos> cadastrarEvento(@RequestBody eventos eventos) {
         try {
             eventos novoEvento = eventosService.cadastrarEvento(eventos);
@@ -40,6 +41,8 @@ public class eventosController { // Nome da classe original mantido
 
     @GetMapping("/eventos")
     public ResponseEntity<List<eventos>> listarEventos(Principal principal) {
+        // ... (O código deste método que você já tem está funcional para o 403,
+        // desde que a permissão esteja no SecurityConfig)
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             boolean isManager = authentication.getAuthorities().stream()
@@ -56,7 +59,6 @@ public class eventosController { // Nome da classe original mantido
             }
             return ResponseEntity.ok(listaEventos);
         } catch (RuntimeException e) {
-            // Captura exceções de "Atleta não encontrado" ou "Evento não encontrado"
             System.err.println("Erro de lógica ou recurso não encontrado ao listar eventos: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (Exception e) {

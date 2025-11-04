@@ -4,6 +4,7 @@ import com.br.Entity.analiseIa;
 import com.br.Repository.analiseIaRepository;
 import com.br.Service.analiseIaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,5 +40,19 @@ public class analiseIaController {
 
         analiseIaService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/Atualizar/{id}")
+    public ResponseEntity<analiseIa> atualizarRespostaIa(@PathVariable UUID id, @RequestBody analiseIa analiseIa) {
+       try {
+           analiseIa = analiseIaService.atualizarAnalise(id, analiseIa);
+           return ResponseEntity.ok(analiseIa);
+       } catch (RuntimeException e) {
+           return ResponseEntity.notFound().build();
+       } catch (Exception e) {
+           System.err.println("Erro ao atualizar Resposta IA: " + e.getMessage());
+           e.printStackTrace();
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+       }
     }
 }
