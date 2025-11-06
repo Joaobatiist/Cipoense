@@ -22,12 +22,12 @@ public class comunicadoStatus {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "comunicado_id", nullable = false)
+    @JoinColumn(name = "comunicado_id", nullable = true)
     private comunicado comunicado;
 
     // Relacionamento 1/2: Para Atletas
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "atleta_id")
+    @JoinColumn(name = "atleta_id",nullable = true)
     private atleta atleta;
 
     // Relacionamento 2/2: PARA TODOS OS FUNCIONÁRIOS (Unificado)
