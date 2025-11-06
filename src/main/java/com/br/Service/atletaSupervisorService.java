@@ -99,8 +99,11 @@ public class atletaSupervisorService {
         this.updateResponsavel(atleta.getResponsavel(), profileDto.getContatoResponsavel(), atleta::setResponsavel);
 
         // Contato Responsável Secundário
-        this.updateResponsavel(atleta.getContatoResponsavelSecundario(), profileDto.getContatoResponsavelSecundario(), atleta::setContatoResponsavelSecundario);
-
+        this.updateResponsavel(
+                atleta.getContatoResponsavelSecundario(),      // ARG 1
+                profileDto.getContatoResponsavelSecundario(), // ARG 2
+                atleta::setContatoResponsavelSecundario
+        );
         // CORREÇÃO: Se o PDF for enviado junto com a atualização do perfil (opcional, mas possível)
         if (profileDto.getDocumentoPdfBase64() != null && !profileDto.getDocumentoPdfBase64().isEmpty()) {
             try {

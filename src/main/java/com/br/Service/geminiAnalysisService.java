@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
@@ -39,24 +40,45 @@ public class geminiAnalysisService {
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
-    private final analiseIaRepository analiseIaRepository; // NOVO: Injeção do Repository
+    private final analiseIaRepository analiseIaRepository;
+
+    // SEU PROMPT FINAL: Usado para definir a persona e as regras de formato
+    private static final String SYSTEM_INSTRUCTION_PROMPT =
+            "Você é um Treinador e Analista de Desenvolvimento de Futebol (Base). Seu papel é ser um mentor honesto, motivador e profissional, cujo foco é maximizar o potencial de atletas jovens em formação (categorias de base).\n\n" +
+                    "Sua análise deve ser totalmente baseada nos dados brutos de avaliação fornecidos pelo usuário, **indo direto ao ponto**. Não apresente os dados da avaliação em forma de lista; em vez disso, **descreva e analise o significado deles**.\n\n" +
+                    "Tom e Linguagem: A análise deve ser construtiva, direta, mas sempre encorajadora. Use uma linguagem acessível e didática (como um professor/treinador). O objetivo é inspirar o atleta a melhorar e a valorizar o que ele já faz bem.\n\n" +
+                    "Formato de Saída (Obrigatório):\n" +
+                    "A resposta deve ser organizada de forma clara e profissional, utilizando listas com marcadores (• ou -) e quebras de linha para estruturar as informações. Siga exatamente estas cinco seções:\n\n" +
+                    "1. Pontos Fortes e Consistência :\n" +
+                    "   • Destaque 3 a 5 qualidades já consolidadas e use os dados históricos para comprovar a consistência ou tendência de melhoria.\n" +
+                    "   • Inclua um breve texto sobre como manter e consolidar esses pontos fortes através de repetição.\n\n" +
+                    "2. Foco para Aprimoramento :\n" +
+                    "   • Identifique 3 a 5 áreas específicas (técnicas, táticas, psicológicas ou físicas) que, se desenvolvidas, trarão maior impacto no seu jogo atual e futuro. Seja específico e direto.\n\n" +
+                    "3. Estratégia e Treinamento (Ações Práticas):\n" +
+                    "   • Para cada Área de Aprimoramento do ponto 2, sugira 1 a 2 exercícios ou hábitos de treino práticos e concretos.\n" +
+                    "   • As ações devem ser realistas e aplicáveis à rotina de um atleta de base.\n\n" +
+                    "4. Visão de Futuro (Previsão Realista):\n" +
+                    "   • Apresente uma projeção realista do nível que o atleta pode alcançar nos próximos 2 a 5 meses, vinculando o sucesso diretamente ao seu compromisso com a Estratégia e Treinamento propostos.\n\n" +
+                    "5. Mensagem Final do Professor (Motivação):\n" +
+                    "   • Encerre a análise com uma mensagem pessoal, concisa e de alto impacto que reforce a crença no potencial do atleta e o inspire a continuar o trabalho duro.";
+
 
     public geminiAnalysisService(WebClient.Builder webClientBuilder,
                                  ObjectMapper objectMapper,
                                  @Value("${gemini.api.key}") String geminiApiKey,
                                  @Value("${gemini.api.baseurl}") String geminiApiBaseUrl,
                                  @Value("${gemini.api.model}") String geminiApiModel,
-                                 analiseIaRepository analiseIaRepository) { // NOVO: Injeção por construtor
+                                 analiseIaRepository analiseIaRepository) {
         this.geminiApiKey = geminiApiKey;
         this.geminiApiBaseUrl = geminiApiBaseUrl;
         this.geminiApiModel = geminiApiModel;
         this.webClient = webClientBuilder.baseUrl(this.geminiApiBaseUrl).build();
         this.objectMapper = objectMapper;
-        this.analiseIaRepository = analiseIaRepository; // NOVO: Atribuição do Repository
+        this.analiseIaRepository = analiseIaRepository;
     }
 
     public static class EvaluationScores {
-        // ... (conteúdo da classe é o mesmo) ...
+        // ... (Corpo da classe EvaluationScores permanece o mesmo) ...
         public LocalDate date;
         public Map<String, Integer> performanceScores = new HashMap<>();
         public Map<String, Integer> tacticalPsychologicalScores = new HashMap<>();
@@ -135,6 +157,7 @@ public class geminiAnalysisService {
         }
     }
 
+
     public Mono<String> generateComprehensiveAnalysis(String atletaName, List<EvaluationScores> evaluations, String atletaEmail) {
         if (evaluations.isEmpty()) {
             return Mono.just("Não há dados de avaliação para gerar uma análise abrangente para " + atletaName + ".");
@@ -159,29 +182,15 @@ public class geminiAnalysisService {
         }
         historicalData.append("\n");
 
-        String promptText = String.format(
-                "Você é um treinador de futebol inteligente e experiente. Sua tarefa é analisar o desempenho do atleta %s. " +
-                        "A análise deve ser para que o atleta melhora e se mantenha, com um tom de voz claro e de treinador. " +
-                        "A resposta deve ser organizada em seções claras, sem usar negrito em qualquer parte do texto. Use parágrafos ou marcadores simples para cada item. " +
-                        "Use as seguintes informações para a sua análise: \n\n" +
-                        "Dados Históricos: %s\n" +
+        // USER PROMPT: Combina a instrução de sistema com os dados para evitar o erro 400
+        String userPromptData = String.format(
+                "%s\n\n--- INÍCIO DOS DADOS DO ATLETA %s ---\n\n" +
+                        "Histórico de Avaliações:\n%s\n" +
                         "--- Avaliação Mais Recente (%s) ---\n" +
-                        "Desempenho: %s\n" +
-                        "Tático/Psicológico/Físico: %s\n" +
-                        "Feedback Qualitativo Recente: \"%s\"\n\n" +
-                        "Com base nesses dados, forneça uma análise detalhada, focando nos seguintes pontos:\n\n" +
-                        "1. Pontos Fortes:\n" +
-                        "- Destaque 3 a 5 pontos fortes claros do atleta, com exemplos ou tendências de melhoria ao longo do tempo.\n\n" +
-                        "2. Áreas de Aprimoramento:\n" +
-                        "- Identifique 3 a 5 áreas específicas onde o atleta pode melhorar. Seja direto e construtivo. " +
-                        "Inclua  treino específicas para oque o pode melhorar atleta.\n\n" +
-                        "3. Plano de Ação:\n" +
-                        "- Para cada área de aprimoramento, sugira 1-2 ações práticas e concretas que o atleta pode realizar nos treinos e jogos para desenvolver essas habilidades.\n\n" +
-                        "4. Previsão de Desempenho:\n" +
-                        "- Ofereça uma previsão realista do que o atleta pode alcançar se esforçar mais, baseando-se nas tendências e no compromisso com o plano de ação.\n\n" +
-                        "5. Mensagem Final:\n" +
-                        "- Escreva uma mensagem de encorajamento, finalizando a análise." ,
-                atletaName,
+                        "Scores de Desempenho: %s\n" +
+                        "Scores Tático/Psicológico/Físico: %s\n" +
+                        "Feedback Qualitativo Recente: \"%s\"",
+                SYSTEM_INSTRUCTION_PROMPT, // Instrução de Sistema no início do prompt de dados
                 atletaName,
                 historicalData.toString(),
                 latestEvaluation.date.format(formatter),
@@ -190,18 +199,26 @@ public class geminiAnalysisService {
                 latestEvaluation.combinedFeedback.isEmpty() ? "N/A" : latestEvaluation.combinedFeedback
         );
 
-        // A lógica de salvamento será adicionada no método map para processar a resposta
-        // O restante do código de requisição permanece o mesmo
+
+        // -------------------------------------------------------------------------
+        // MONTAGEM DO REQUEST BODY CORRIGIDO (Remoção do nó 'systemInstruction' para evitar o 400)
+        // -------------------------------------------------------------------------
 
         ObjectNode requestBody = objectMapper.createObjectNode();
+
+        // **A CORREÇÃO:** O nó systemInstruction foi removido. O prompt agora contém a instrução.
+        // requestBody.put("systemInstruction", SYSTEM_INSTRUCTION_PROMPT); // <--- REMOVIDO
+
+        // 1. Adicionar o Conteúdo (Dados de entrada, que agora incluem a instrução)
         ArrayNode contentsArray = requestBody.putArray("contents");
         ObjectNode contentObject = contentsArray.addObject();
         ArrayNode partsArray = contentObject.putArray("parts");
-        partsArray.addObject().put("text", promptText);
+        partsArray.addObject().put("text", userPromptData); // Usa o prompt combinado
 
+        // 2. Configurações de Geração (Aumento do maxOutputTokens)
         ObjectNode generationConfig = requestBody.putObject("generationConfig");
         generationConfig.put("temperature", 0.7);
-        generationConfig.put("maxOutputTokens", 800);
+        generationConfig.put("maxOutputTokens", 2048); // Aumentado para evitar corte
         generationConfig.put("topP", 0.9);
         generationConfig.put("topK", 40);
 
@@ -228,8 +245,7 @@ public class geminiAnalysisService {
                     if (textNode.isTextual()) {
                         String respostaDaIa = textNode.asText();
 
-                        // NOVO: Criar e salvar a entidade AnaliseIa
-                        analiseIa novaAnalise = new analiseIa(atletaEmail, promptText, respostaDaIa);
+                        analiseIa novaAnalise = new analiseIa(atletaEmail, userPromptData, respostaDaIa);
                         analiseIaRepository.save(novaAnalise);
 
                         return respostaDaIa;
@@ -239,6 +255,16 @@ public class geminiAnalysisService {
                     }
                 })
                 .onErrorResume(e -> {
+                    // Tratamento para 403 Forbidden (chave inválida) e outros erros
+                    if (e instanceof WebClientResponseException.Forbidden) {
+                        logger.error("Erro 403 Forbidden na API Gemini. Verifique a API Key e permissões. Erro: {}", e.getMessage());
+                        return Mono.error(new RuntimeException("Falha de Autenticação (403): Verifique a API Key do Gemini."));
+                    }
+                    if (e instanceof WebClientResponseException.BadRequest) {
+                        logger.error("Erro 400 Bad Request na API Gemini. Verifique o formato JSON (provavelmente problema de token ou modelo/endpoint). Erro: {}", e.getMessage());
+                        return Mono.error(new RuntimeException("Requisição Inválida (400): Erro no formato JSON ou na requisição para a IA."));
+                    }
+
                     logger.error("Erro na chamada à API do Google Gemini (WebClient): {}", e.getMessage(), e);
                     return Mono.error(new RuntimeException("Não foi possível gerar a análise completa (erro de comunicação com a IA).", e));
                 });

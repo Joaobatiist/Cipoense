@@ -53,10 +53,10 @@ public class atleta {
     @Column(name = "data_de_nascimento")
     private LocalDate dataNascimento;
 
-    @Column(name = "cpf", nullable = true, unique = true)
+    @Column(name = "cpf", nullable = true, unique = false)
     private String cpf;
 
-    @Column(name = "RG", nullable = true, unique = true)
+    @Column(name = "RG", nullable = true, unique = false)
     private String rg;
 
     @Column(name = "endereço")

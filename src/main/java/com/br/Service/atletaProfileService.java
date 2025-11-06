@@ -175,6 +175,11 @@ public class atletaProfileService {
         dto.setEmail(atleta.getEmail());
         dto.setSubDivisao(atleta.getSubDivisao());
         dto.setPosicao(atleta.getPosicao());
+        if (atleta.getContatoResponsavelSecundario() != null) {
+            dto.setContatoResponsavelSecundario(atleta.getContatoResponsavelSecundario().getTelefone());
+        } else {
+            dto.setContatoResponsavelSecundario(null);
+        }
         // Formata a data de LocalDate (do DB) para String (DD/MM/YYYY para o frontend)
         dto.setDataNascimento(atleta.getDataNascimento() != null ? atleta.getDataNascimento().format(DATE_FORMATTER) : null);
 
