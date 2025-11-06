@@ -24,5 +24,9 @@ public class estoque {
     private String nome;
     @Column(nullable = false)
     private Integer quantidade;
+    @Column(nullable = false)
+    private String  justificativa;
+    private String data;
+
 
 }
