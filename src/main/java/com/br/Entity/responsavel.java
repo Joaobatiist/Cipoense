@@ -24,6 +24,8 @@ public class responsavel {
     private String nome;
     @Column(unique = true)
     private String telefone;
+
+    private String contatoExtra;
     @Column(unique = true)
     private String email;
     @Column(unique = true)

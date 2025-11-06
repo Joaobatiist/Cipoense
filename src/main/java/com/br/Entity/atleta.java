@@ -110,9 +110,7 @@ public class atleta {
     @JoinColumn(name = "responsavel_id")
     private responsavel responsavel;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, optional = true)
-    @JoinColumn(name= "responsavel2_id")
-    private responsavel contatoResponsavelSecundario;
+
 
     @Column(name = "isencao", nullable = true)
     private boolean isencao;

@@ -24,9 +24,11 @@ public class atletaProfileDto {
     private posicao posicao;
     private String dataNascimento;
     private String foto;
+    private String nomeResponsavel;
     private String contatoResponsavel;
     private Boolean isAptoParaJogar;
-    private String contatoResponsavelSecundario;
+    private String cpf;
+    private String contatoExtra;
     private double massa;
     private double altura;
     private String tipoSanguineo;

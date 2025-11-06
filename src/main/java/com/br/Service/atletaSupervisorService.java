@@ -57,6 +57,7 @@ public class atletaSupervisorService {
 
     public atletaProfileDto updateAtleta(UUID atletaId, atletaProfileDto profileDto) {
         atleta atleta = findAtletaById(atletaId);
+        // responsavel responsavel = new responsavel(); // <-- REMOVIDO: Linha incorreta
 
         // Atualiza campos com base no DTO
         atleta.setNome(profileDto.getNome());
@@ -76,7 +77,22 @@ public class atletaSupervisorService {
         atleta.setRg(profileDto.getRg());
         atleta.setProblemaDeSaude(profileDto.getProblemaDeSaude());
         atleta.setContatoEscola(profileDto.getContatoEscola());
-        atleta.setEscola(profileDto.getEscola()); // Adicionado o campo 'escola'
+        atleta.setEscola(profileDto.getEscola());
+        atleta.setCpf(profileDto.getCpf());
+
+        // CORREÇÃO ESSENCIAL: Atualizar o Responsável existente ou criar um novo
+        if (atleta.getResponsavel() != null) {
+            // Se o responsável existe, atualiza os campos dele com os dados do DTO
+            atleta.getResponsavel().setContatoExtra(profileDto.getContatoExtra());
+            atleta.getResponsavel().setNome(profileDto.getNomeResponsavel()); // Assumindo que profileDto.getNomeResponsavel() existe
+        } else if (profileDto.getNomeResponsavel() != null || profileDto.getContatoExtra() != null || profileDto.getContatoResponsavel() != null) {
+            // Se o responsável não existe, mas há dados no DTO, cria um novo
+            responsavel novoResponsavel = new responsavel();
+            novoResponsavel.setNome(profileDto.getNomeResponsavel());
+            novoResponsavel.setContatoExtra(profileDto.getContatoExtra());
+            // O telefone será setado e salvo no método updateResponsavel
+            atleta.setResponsavel(novoResponsavel);
+        }
 
         // Data de Nascimento
         if (profileDto.getDataNascimento() != null && !profileDto.getDataNascimento().trim().isEmpty()) {
@@ -95,15 +111,10 @@ public class atletaSupervisorService {
             atleta.setDataNascimento(null);
         }
 
-        // Contato Responsável Principal
+        // Contato Responsável Principal (Lógica de persistência e validação)
         this.updateResponsavel(atleta.getResponsavel(), profileDto.getContatoResponsavel(), atleta::setResponsavel);
 
-        // Contato Responsável Secundário
-        this.updateResponsavel(
-                atleta.getContatoResponsavelSecundario(),      // ARG 1
-                profileDto.getContatoResponsavelSecundario(), // ARG 2
-                atleta::setContatoResponsavelSecundario
-        );
+
         // CORREÇÃO: Se o PDF for enviado junto com a atualização do perfil (opcional, mas possível)
         if (profileDto.getDocumentoPdfBase64() != null && !profileDto.getDocumentoPdfBase64().isEmpty()) {
             try {
@@ -138,9 +149,6 @@ public class atletaSupervisorService {
                 // Remove apenas o telefone, mantendo a entidade para evitar remoção em cascata indesejada se houver outros dados.
                 currentResponsavel.setTelefone(null);
                 responsavelRepository.save(currentResponsavel);
-                // Se a intenção for realmente remover a entidade se o contato estiver vazio, use:
-                // responsavelRepository.delete(currentResponsavel);
-                // setter.accept(null);
             }
         }
     }
@@ -190,6 +198,7 @@ public class atletaSupervisorService {
     // CORREÇÃO ESSENCIAL: Mapeamento completo de Entidade Atleta para DTO AtletaProfileDto
     private atletaProfileDto convertToDto(atleta atleta) {
         atletaProfileDto dto = new atletaProfileDto();
+        // responsavel responsavel = new responsavel(); // <-- REMOVIDO: Linha incorreta
 
         // --- 1. CAMPOS ESSENCIAIS E ORGANIZACIONAIS ---
         dto.setId(atleta.getId());
@@ -216,24 +225,25 @@ public class atletaSupervisorService {
         dto.setContatoEscola(atleta.getContatoEscola());
         dto.setAnoEscolar(atleta.getAnoEscolar());
         dto.setHorarioDeAula(atleta.getHorarioDeAula());
+        dto.setCpf(atleta.getCpf());
 
         // --- 4. DATA DE NASCIMENTO ---
         dto.setDataNascimento(atleta.getDataNascimento() != null ? atleta.getDataNascimento().format(DATE_FORMATTER) : null);
 
         // --- 5. RESPONSÁVEIS (RELAÇÃO @OneToOne) ---
-        // Contato Responsável Principal (usando getTelefone() da Entidade responsavel)
         if (atleta.getResponsavel() != null) {
+            // Contato Responsável Principal (usando getTelefone() da Entidade responsavel)
             dto.setContatoResponsavel(atleta.getResponsavel().getTelefone());
+
+            // Contato Extra e Nome do Responsável
+            dto.setContatoExtra(atleta.getResponsavel().getContatoExtra());
+            dto.setNomeResponsavel(atleta.getResponsavel().getNome());
         } else {
             dto.setContatoResponsavel(null);
+            dto.setContatoExtra(null);
+            dto.setNomeResponsavel(null);
         }
 
-        // Contato Responsável Secundário
-        if (atleta.getContatoResponsavelSecundario() != null) {
-            dto.setContatoResponsavelSecundario(atleta.getContatoResponsavelSecundario().getTelefone());
-        } else {
-            dto.setContatoResponsavelSecundario(null);
-        }
 
         // --- 6. ARQUIVOS (Base64) ---
         // Foto
