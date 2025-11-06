@@ -1,5 +1,6 @@
 package com.br.Response;
 
+import com.br.Entity.responsavel;
 import com.br.Enums.posicao;
 import com.br.Enums.subDivisao;
 import lombok.AllArgsConstructor;
@@ -25,7 +26,19 @@ public class atletaProfileDto {
     private String foto;
     private String contatoResponsavel;
     private Boolean isAptoParaJogar;
-
+    private String contatoResponsavelSecundario;
+    private double massa;
+    private double altura;
+    private String tipoSanguineo;
+    private String alergias;
+    private String problemaDeSaude;
+    private String horarioDeAula;
+    private String escola;
+    private String contatoEscola;
+    private String anoEscolar;
+    private boolean isencao;
+    private String endereco;
+    private String rg;
     // --- NOVOS CAMPOS PARA PDF ENVIADO EM BASE64 ---
     private String documentoPdfBase64; // PDF em formato Base64 para o frontend
     private String documentoPdfContentType; // Tipo do conteúdo (ex: "application/pdf")

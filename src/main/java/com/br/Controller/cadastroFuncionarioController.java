@@ -13,8 +13,7 @@ import java.util.Map;
 
 
 @RestController
-@RequestMapping("/cadastro")
-@CrossOrigin("http://192.168.0.10:8081") // Endpoint unificado para cadastro de funcionários
+@RequestMapping("/cadastro")// Endpoint unificado para cadastro de funcionários
 public class cadastroFuncionarioController {
 
     private final cadastroFuncionariosService cadastroFuncionariosService;

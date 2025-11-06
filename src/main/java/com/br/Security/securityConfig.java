@@ -78,7 +78,7 @@ public class securityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/analises/atleta/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.DELETE, "/api/analises/delete").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")
                         .requestMatchers(HttpMethod.PUT, "/api/analises/Atualizar/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
-                        .requestMatchers(HttpMethod.POST, "/cadastro/funcionarios").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/cadastro/funcionarios").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         .requestMatchers(HttpMethod.DELETE,"/api/supervisor/atletas/deletar/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         .requestMatchers(HttpMethod.PUT,"/api/supervisor/atletas/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR")
                         .requestMatchers(HttpMethod.GET,"/api/supervisor/atletas/**").hasAnyAuthority("SUPERVISOR", "COORDENADOR", "TECNICO")

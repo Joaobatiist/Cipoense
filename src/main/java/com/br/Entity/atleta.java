@@ -6,7 +6,6 @@ import com.br.Enums.role;
 import com.br.Enums.subDivisao;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -91,7 +90,7 @@ public class atleta {
     private String contatoEscola;
 
     @Column(name = "anoEscolar")
-    private Integer anoEscolar;
+    private String anoEscolar;
 
     //Informações Cadastrais Organizacionais
 
@@ -113,7 +112,7 @@ public class atleta {
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, optional = true)
     @JoinColumn(name= "responsavel2_id")
-    private responsavel responsavel2;
+    private responsavel contatoResponsavelSecundario;
 
     @Column(name = "isencao", nullable = true)
     private boolean isencao;
